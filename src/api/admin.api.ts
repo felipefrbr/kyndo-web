@@ -18,7 +18,7 @@ export interface UserListResponse {
 }
 
 export async function adminListCampaigns(status = '', page = 1, perPage = 10): Promise<CampaignListResponse> {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (status) params.status = status;
   const response = await client.get('/admin/campaigns', { params });
   return response.data;
@@ -40,7 +40,7 @@ export async function adminRejectCampaign(id: string, reason: string): Promise<{
 }
 
 export async function adminListUsers(role = '', page = 1, perPage = 10): Promise<UserListResponse> {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (role) params.role = role;
   const response = await client.get('/admin/users', { params });
   return response.data;

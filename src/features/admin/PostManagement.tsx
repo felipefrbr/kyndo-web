@@ -25,7 +25,7 @@ export function PostManagement() {
 
   const load = () => {
     setLoading(true);
-    const params: Record<string, any> = { page, per_page: 10 };
+    const params: Record<string, string | number> = { page, per_page: 10 };
     if (statusFilter) params.status = statusFilter;
     client.get('/admin/posts', { params })
       .then(({ data }) => { setPosts(data.posts ?? []); setTotal(data.total); })

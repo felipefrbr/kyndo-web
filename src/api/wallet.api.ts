@@ -35,7 +35,7 @@ export async function getWallet(): Promise<{ wallet: Wallet }> {
 }
 
 export async function listTransactions(txType = '', page = 1, perPage = 20) {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (txType) params.tx_type = txType;
   const { data } = await client.get('/wallet/transactions', { params });
   return data as { transactions: WalletTransaction[]; total: number; page: number; per_page: number };
@@ -53,7 +53,7 @@ export async function listWithdrawals(): Promise<{ withdrawals: Withdrawal[] }> 
 
 // Admin
 export async function adminListWithdrawals(status = '', page = 1, perPage = 10) {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (status) params.status = status;
   const { data } = await client.get('/admin/withdrawals', { params });
   return data as { withdrawals: Withdrawal[]; total: number; page: number; per_page: number };

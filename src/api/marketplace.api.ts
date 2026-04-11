@@ -22,13 +22,13 @@ export interface MarketplaceListResponse {
 }
 
 export async function listMarketplaceCampaigns(search = '', page = 1, perPage = 10): Promise<MarketplaceListResponse> {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (search) params.search = search;
   const response = await client.get('/marketplace/campaigns', { params });
   return response.data;
 }
 
-export async function subscribeToCampaign(campaignId: string): Promise<any> {
+export async function subscribeToCampaign(campaignId: string): Promise<unknown> {
   const response = await client.post(`/campaigns/${campaignId}/subscribe`);
   return response.data;
 }
@@ -66,7 +66,7 @@ export async function createPost(campaignId: string, postUrl: string, platform: 
 }
 
 export async function listPosts(campaignId?: string, page = 1, perPage = 10): Promise<PostListResponse> {
-  const params: Record<string, any> = { page, per_page: perPage };
+  const params: Record<string, string | number> = { page, per_page: perPage };
   if (campaignId) params.campaign_id = campaignId;
   const response = await client.get('/posts', { params });
   return response.data;

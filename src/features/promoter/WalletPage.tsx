@@ -53,8 +53,9 @@ export function WalletPage() {
       setWithdrawAmount('');
       setPixKey('');
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Erro ao solicitar saque');
+    } catch (err) {
+      const message = (err instanceof Error) ? err.message : 'Erro ao solicitar saque';
+      setError(message);
     } finally {
       setWithdrawing(false);
     }
