@@ -17,6 +17,7 @@ const promoterLinks = [
 const adminLinks = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/campaigns', label: 'Campanhas', icon: Megaphone },
+  { to: '/admin/posts', label: 'Posts', icon: FileText },
   { to: '/admin/users', label: 'Usuarios', icon: Users },
   { to: '/admin/withdrawals', label: 'Saques', icon: CreditCard },
 ];
