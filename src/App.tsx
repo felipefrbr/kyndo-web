@@ -12,6 +12,8 @@ import { CampaignForm } from '@/features/creator/CampaignForm';
 import { CampaignDetail } from '@/features/creator/CampaignDetail';
 import { PromoterDashboard } from '@/features/promoter/PromoterDashboard';
 import { AdminDashboard } from '@/features/admin/AdminDashboard';
+import { CampaignApproval } from '@/features/admin/CampaignApproval';
+import { UserManagement } from '@/features/admin/UserManagement';
 import { RoleRedirect } from '@/routes/RoleRedirect';
 
 const queryClient = new QueryClient({
@@ -54,8 +56,8 @@ export default function App() {
 
               {/* Admin */}
               <Route path="/admin" element={<RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard>} />
-              <Route path="/admin/campaigns" element={<RoleGuard allowedRoles={['admin']}><Placeholder text="Gestao de campanhas (Fase 3)" /></RoleGuard>} />
-              <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin']}><Placeholder text="Usuarios (Fase 3)" /></RoleGuard>} />
+              <Route path="/admin/campaigns" element={<RoleGuard allowedRoles={['admin']}><CampaignApproval /></RoleGuard>} />
+              <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin']}><UserManagement /></RoleGuard>} />
               <Route path="/admin/withdrawals" element={<RoleGuard allowedRoles={['admin']}><Placeholder text="Saques (Fase 5)" /></RoleGuard>} />
             </Route>
 

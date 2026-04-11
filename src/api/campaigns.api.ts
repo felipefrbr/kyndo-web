@@ -25,3 +25,8 @@ export async function submitCampaign(id: string): Promise<{ campaign: Campaign }
   const response = await client.post(`/campaigns/${id}/submit`);
   return response.data;
 }
+
+export async function activateCampaign(id: string): Promise<{ campaign: Campaign }> {
+  const response = await client.post(`/campaigns/${id}/activate`);
+  return response.data;
+}
