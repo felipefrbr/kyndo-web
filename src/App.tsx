@@ -7,6 +7,9 @@ import { AppShell } from '@/components/layout/AppShell';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { SignupPage } from '@/features/auth/SignupPage';
 import { CreatorDashboard } from '@/features/creator/CreatorDashboard';
+import { MyCampaigns } from '@/features/creator/MyCampaigns';
+import { CampaignForm } from '@/features/creator/CampaignForm';
+import { CampaignDetail } from '@/features/creator/CampaignDetail';
 import { PromoterDashboard } from '@/features/promoter/PromoterDashboard';
 import { AdminDashboard } from '@/features/admin/AdminDashboard';
 import { RoleRedirect } from '@/routes/RoleRedirect';
@@ -38,8 +41,10 @@ export default function App() {
 
               {/* Creator */}
               <Route path="/creator" element={<RoleGuard allowedRoles={['creator']}><CreatorDashboard /></RoleGuard>} />
-              <Route path="/creator/campaigns" element={<RoleGuard allowedRoles={['creator']}><Placeholder text="Listagem de campanhas (Fase 2)" /></RoleGuard>} />
-              <Route path="/creator/campaigns/new" element={<RoleGuard allowedRoles={['creator']}><Placeholder text="Criar campanha (Fase 2)" /></RoleGuard>} />
+              <Route path="/creator/campaigns" element={<RoleGuard allowedRoles={['creator']}><MyCampaigns /></RoleGuard>} />
+              <Route path="/creator/campaigns/new" element={<RoleGuard allowedRoles={['creator']}><CampaignForm /></RoleGuard>} />
+              <Route path="/creator/campaigns/:id" element={<RoleGuard allowedRoles={['creator']}><CampaignDetail /></RoleGuard>} />
+              <Route path="/creator/campaigns/:id/edit" element={<RoleGuard allowedRoles={['creator']}><CampaignForm /></RoleGuard>} />
 
               {/* Promoter */}
               <Route path="/promoter" element={<RoleGuard allowedRoles={['promoter']}><PromoterDashboard /></RoleGuard>} />
