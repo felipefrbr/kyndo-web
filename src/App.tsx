@@ -14,10 +14,12 @@ import { PromoterDashboard } from '@/features/promoter/PromoterDashboard';
 import { BrowseCampaigns } from '@/features/promoter/BrowseCampaigns';
 import { CampaignContent } from '@/features/promoter/CampaignContent';
 import { MyPosts } from '@/features/promoter/MyPosts';
+import { WalletPage } from '@/features/promoter/WalletPage';
 import { AdminDashboard } from '@/features/admin/AdminDashboard';
 import { CampaignApproval } from '@/features/admin/CampaignApproval';
 import { UserManagement } from '@/features/admin/UserManagement';
 import { PostManagement } from '@/features/admin/PostManagement';
+import { WithdrawalManagement } from '@/features/admin/WithdrawalManagement';
 import { RoleRedirect } from '@/routes/RoleRedirect';
 
 const queryClient = new QueryClient({
@@ -57,14 +59,14 @@ export default function App() {
               <Route path="/promoter/browse" element={<RoleGuard allowedRoles={['promoter']}><BrowseCampaigns /></RoleGuard>} />
               <Route path="/promoter/campaigns/:id" element={<RoleGuard allowedRoles={['promoter']}><CampaignContent /></RoleGuard>} />
               <Route path="/promoter/posts" element={<RoleGuard allowedRoles={['promoter']}><MyPosts /></RoleGuard>} />
-              <Route path="/promoter/wallet" element={<RoleGuard allowedRoles={['promoter']}><Placeholder text="Carteira (Fase 5)" /></RoleGuard>} />
+              <Route path="/promoter/wallet" element={<RoleGuard allowedRoles={['promoter']}><WalletPage /></RoleGuard>} />
 
               {/* Admin */}
               <Route path="/admin" element={<RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard>} />
               <Route path="/admin/campaigns" element={<RoleGuard allowedRoles={['admin']}><CampaignApproval /></RoleGuard>} />
               <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin']}><UserManagement /></RoleGuard>} />
               <Route path="/admin/posts" element={<RoleGuard allowedRoles={['admin']}><PostManagement /></RoleGuard>} />
-              <Route path="/admin/withdrawals" element={<RoleGuard allowedRoles={['admin']}><Placeholder text="Saques (Fase 5)" /></RoleGuard>} />
+              <Route path="/admin/withdrawals" element={<RoleGuard allowedRoles={['admin']}><WithdrawalManagement /></RoleGuard>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
