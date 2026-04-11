@@ -31,10 +31,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function Placeholder({ text }: { text: string }) {
-  return <div className="text-gray-500">{text}</div>;
-}
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>

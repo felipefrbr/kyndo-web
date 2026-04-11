@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { getCampaignContent, createPost, type PostItem } from '@/api/marketplace.api';
+import { getCampaignContent, createPost } from '@/api/marketplace.api';
 import { formatCurrency } from '@/lib/formatters';
 import type { Campaign } from '@/types/campaign.types';
 

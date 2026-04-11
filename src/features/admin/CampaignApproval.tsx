@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminListCampaigns, adminApproveCampaign, adminRejectCampaign } from '@/api/admin.api';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import type { Campaign, CampaignStatus } from '@/types/campaign.types';
+import type { Campaign } from '@/types/campaign.types';
 
 export function CampaignApproval() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

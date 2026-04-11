@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Eye, DollarSign, FileText, Megaphone, Wallet } from 'lucide-react';
+import { Eye, DollarSign, FileText, Wallet } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { getPromoterDashboard, type PromoterStats } from '@/api/dashboard.api';
 import { formatCurrency } from '@/lib/formatters';

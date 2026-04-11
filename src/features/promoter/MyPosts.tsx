@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ExternalLink, Trash2, Radio } from 'lucide-react';
 import { listPosts, deletePost, type PostItem } from '@/api/marketplace.api';
-import { formatDate, formatCurrency } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 
 const platformIcons: Record<string, string> = { tiktok: '🎵', youtube: '▶️', instagram: '📷' };
 const statusConfig: Record<string, { label: string; color: string }> = {
