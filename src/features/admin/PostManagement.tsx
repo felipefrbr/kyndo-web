@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Edit3 } from 'lucide-react';
 import client from '@/api/client';
 import { formatDate } from '@/lib/formatters';
 import type { PostItem } from '@/api/marketplace.api';
@@ -20,6 +20,8 @@ export function PostManagement() {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [editViewsId, setEditViewsId] = useState<string | null>(null);
+  const [editViewsValue, setEditViewsValue] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -43,11 +45,20 @@ export function PostManagement() {
     try { await client.post(`/admin/posts/${rejectId}/reject`, { reason: rejectReason }); setRejectId(null); setRejectReason(''); load(); } finally { setActionLoading(false); }
   };
 
+  const handleUpdateViews = async () => {
+    if (!editViewsId) return;
+    const count = parseInt(editViewsValue);
+    if (isNaN(count) || count <= 0) return;
+    setActionLoading(true);
+    try { await client.put(`/admin/posts/${editViewsId}/views`, { view_count: count }); setEditViewsId(null); setEditViewsValue(''); load(); } finally { setActionLoading(false); }
+  };
+
   const statuses = [
     { value: '', label: 'Todos' },
     { value: 'pending_review', label: 'Aguardando' },
     { value: 'monitoring', label: 'Monitorando' },
     { value: 'rejected', label: 'Rejeitados' },
+    { value: 'completed', label: 'Concluidos' },
   ];
 
   const totalPages = Math.max(1, Math.ceil(total / 10));
@@ -78,6 +89,7 @@ export function PostManagement() {
                 <th className="px-4 py-3">URL</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Views</th>
+                <th className="px-4 py-3">Pagas</th>
                 <th className="px-4 py-3">Data</th>
                 <th className="px-4 py-3">Acoes</th>
               </tr>
@@ -95,14 +107,23 @@ export function PostManagement() {
                     </td>
                     <td className="px-4 py-3"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${st.color}`}>{st.label}</span></td>
                     <td className="px-4 py-3 font-medium">{p.last_known_views.toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-gray-500">{p.paid_views.toLocaleString('pt-BR')}</td>
                     <td className="px-4 py-3 text-gray-500">{formatDate(p.created_at)}</td>
-                    <td className="px-4 py-3 flex gap-2">
-                      {p.status === 'pending_review' && (
-                        <>
-                          <button onClick={() => handleApprove(p.id)} disabled={actionLoading} className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700">Aprovar</button>
-                          <button onClick={() => setRejectId(p.id)} className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700">Rejeitar</button>
-                        </>
-                      )}
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {p.status === 'pending_review' && (
+                          <>
+                            <button onClick={() => handleApprove(p.id)} disabled={actionLoading} className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700">Aprovar</button>
+                            <button onClick={() => setRejectId(p.id)} className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700">Rejeitar</button>
+                          </>
+                        )}
+                        {(p.status === 'monitoring' || p.status === 'completed') && (
+                          <button onClick={() => { setEditViewsId(p.id); setEditViewsValue(String(p.last_known_views)); }}
+                            className="flex items-center gap-1 rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-100">
+                            <Edit3 className="h-3 w-3" /> Views
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -120,6 +141,7 @@ export function PostManagement() {
         </div>
       )}
 
+      {/* Reject modal */}
       {rejectId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
@@ -129,6 +151,22 @@ export function PostManagement() {
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={() => { setRejectId(null); setRejectReason(''); }} className="rounded-md border px-4 py-2 text-sm text-gray-700">Cancelar</button>
               <button onClick={handleReject} disabled={actionLoading || !rejectReason.trim()} className="rounded-md bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-50">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update views modal */}
+      {editViewsId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900">Atualizar Views</h3>
+            <p className="mt-1 text-sm text-gray-500">O valor informado sera a nova contagem total de views.</p>
+            <input type="number" min="0" value={editViewsValue} onChange={(e) => setEditViewsValue(e.target.value)}
+              className="mt-3 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none" placeholder="Numero de views" />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => { setEditViewsId(null); setEditViewsValue(''); }} className="rounded-md border px-4 py-2 text-sm text-gray-700">Cancelar</button>
+              <button onClick={handleUpdateViews} disabled={actionLoading} className="rounded-md bg-primary px-4 py-2 text-sm text-white disabled:opacity-50">Atualizar</button>
             </div>
           </div>
         </div>
