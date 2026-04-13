@@ -11,6 +11,9 @@ export interface MarketplaceCampaign {
   budget_cents: number;
   cpm_cents: number;
   spent_cents: number;
+  status: 'active' | 'scheduled';
+  start_at?: string | null;
+  end_at?: string | null;
   is_subscribed: boolean;
   created_at: string;
 }

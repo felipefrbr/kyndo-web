@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Search } from 'lucide-react';
+import { Search, Clock } from 'lucide-react';
 import { listMarketplaceCampaigns, subscribeToCampaign, type MarketplaceCampaign } from '@/api/marketplace.api';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDateTime } from '@/lib/formatters';
 
 export function BrowseCampaigns() {
   const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
@@ -76,10 +76,18 @@ export function BrowseCampaigns() {
                   {c.is_subscribed && (
                     <span className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-xs font-medium text-white shadow">Inscrito</span>
                   )}
+                  {c.status === 'scheduled' && (
+                    <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-medium text-white shadow">
+                      <Clock className="h-3 w-3" /> Agendada
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-1 flex-col p-3">
                   <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">{c.title}</h3>
                   <p className="mt-0.5 truncate text-xs text-gray-500">por {c.creator_name}</p>
+                  {c.status === 'scheduled' && c.start_at && (
+                    <p className="mt-1 text-[11px] text-indigo-600">Inicia em {formatDateTime(c.start_at)}</p>
+                  )}
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className="text-base font-bold text-primary">{formatCurrency(c.cpm_cents)}</span>
                     <span className="text-xs text-gray-500">/ 1k views</span>
