@@ -4,13 +4,8 @@ import { isAxiosError } from 'axios';
 import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api';
 import { toDatetimeLocalValue } from '@/lib/formatters';
 import { ImageUpload } from '@/components/shared/ImageUpload';
+import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import type { PlatformKey } from '@/types/campaign.types';
-
-const PLATFORM_LABELS: Record<PlatformKey, { label: string; icon: string }> = {
-  tiktok: { label: 'TikTok', icon: '🎵' },
-  youtube: { label: 'YouTube', icon: '▶️' },
-  instagram: { label: 'Instagram', icon: '📷' },
-};
 
 export function CampaignForm() {
   const { id } = useParams();
@@ -226,7 +221,7 @@ export function CampaignForm() {
                   checked={platformEnabled[k]}
                   onChange={(e) => setPlatformEnabled((prev) => ({ ...prev, [k]: e.target.checked }))}
                 />
-                <span>{PLATFORM_LABELS[k].icon} {PLATFORM_LABELS[k].label}</span>
+                <span className="flex items-center gap-1.5"><PlatformIcon platform={k} size={16} /> {platformLabel(k)}</span>
               </label>
               <div className="relative flex-1">
                 <span className="absolute left-3 top-2 text-gray-500">R$</span>

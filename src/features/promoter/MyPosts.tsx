@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { ExternalLink, Trash2, Radio } from 'lucide-react';
 import { listPosts, deletePost, type PostItem } from '@/api/marketplace.api';
 import { formatDate } from '@/lib/formatters';
-
-const platformIcons: Record<string, string> = { tiktok: '🎵', youtube: '▶️', instagram: '📷' };
+import { PlatformIcon } from '@/components/shared/PlatformIcon';
+import type { PlatformKey } from '@/types/campaign.types';
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending_review: { label: 'Aguardando', color: 'bg-yellow-100 text-yellow-700' },
   monitoring: { label: 'Monitorando', color: 'bg-green-100 text-green-700' },
@@ -66,7 +66,7 @@ export function MyPosts() {
               <div key={p.id} className="rounded-lg border bg-white p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">{platformIcons[p.platform] ?? '🔗'}</span>
+                    <PlatformIcon platform={p.platform as PlatformKey} size={22} />
                     <div>
                       <a href={p.post_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
                         <ExternalLink className="h-3 w-3" /> {p.post_url.length > 50 ? p.post_url.slice(0, 50) + '...' : p.post_url}

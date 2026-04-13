@@ -3,13 +3,8 @@ import { Link, useParams } from 'react-router';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { getCampaignContent, createPost } from '@/api/marketplace.api';
 import { formatCurrency } from '@/lib/formatters';
+import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import type { Campaign, PlatformKey } from '@/types/campaign.types';
-
-const PLATFORM_META: Record<PlatformKey, { label: string; icon: string }> = {
-  tiktok: { label: 'TikTok', icon: '🎵' },
-  youtube: { label: 'YouTube', icon: '▶️' },
-  instagram: { label: 'Instagram', icon: '📷' },
-};
 
 export function CampaignContent() {
   const { id } = useParams();
@@ -108,22 +103,20 @@ export function CampaignContent() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Plataforma</label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {(campaign.platforms ?? []).map((p) => {
-                  const meta = PLATFORM_META[p.platform];
-                  return (
-                    <button
-                      key={p.platform}
-                      type="button"
-                      onClick={() => setPlatform(p.platform)}
-                      className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
-                        platform === p.platform ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
-                      }`}
-                    >
-                      <span>{meta.icon} {meta.label}</span>
-                      <span className="text-xs text-gray-500">{formatCurrency(p.cpm_cents)}</span>
-                    </button>
-                  );
-                })}
+                {(campaign.platforms ?? []).map((p) => (
+                  <button
+                    key={p.platform}
+                    type="button"
+                    onClick={() => setPlatform(p.platform)}
+                    className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
+                      platform === p.platform ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
+                    }`}
+                  >
+                    <PlatformIcon platform={p.platform} size={18} />
+                    <span>{platformLabel(p.platform)}</span>
+                    <span className="text-xs text-gray-500">{formatCurrency(p.cpm_cents)}</span>
+                  </button>
+                ))}
               </div>
             </div>
 

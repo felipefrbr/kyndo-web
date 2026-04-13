@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { Pencil, Send, ArrowLeft, Zap } from 'lucide-react';
 import { getCampaign, submitCampaign, activateCampaign } from '@/api/campaigns.api';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
+import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { Campaign } from '@/types/campaign.types';
 
@@ -163,16 +164,15 @@ export function CampaignDetail() {
         <div className="rounded-lg border bg-white p-5">
           <h2 className="text-sm font-medium text-gray-500">Valor por 1.000 views</h2>
           <div className="mt-2 space-y-1.5">
-            {(campaign.platforms ?? []).map((p) => {
-              const icon = p.platform === 'tiktok' ? '🎵' : p.platform === 'youtube' ? '▶️' : '📷';
-              const name = p.platform === 'tiktok' ? 'TikTok' : p.platform === 'youtube' ? 'YouTube' : 'Instagram';
-              return (
-                <div key={p.platform} className="flex items-center justify-between text-sm">
-                  <span>{icon} {name}</span>
-                  <span className="font-semibold text-gray-900">{formatCurrency(p.cpm_cents)}</span>
-                </div>
-              );
-            })}
+            {(campaign.platforms ?? []).map((p) => (
+              <div key={p.platform} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <PlatformIcon platform={p.platform} size={16} />
+                  {platformLabel(p.platform)}
+                </span>
+                <span className="font-semibold text-gray-900">{formatCurrency(p.cpm_cents)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

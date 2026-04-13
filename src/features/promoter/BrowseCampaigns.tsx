@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Search, Clock } from 'lucide-react';
 import { listMarketplaceCampaigns, subscribeToCampaign, type MarketplaceCampaign } from '@/api/marketplace.api';
 import { formatCurrency, formatCountdown } from '@/lib/formatters';
+import { PlatformIcon } from '@/components/shared/PlatformIcon';
 
 export function BrowseCampaigns() {
   const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
@@ -100,11 +101,9 @@ export function BrowseCampaigns() {
                     <span className="text-xs text-gray-500">/ 1k</span>
                   </div>
                   {c.platforms && c.platforms.length > 0 && (
-                    <div className="mt-1 flex gap-1 text-base">
+                    <div className="mt-1 flex items-center gap-1.5">
                       {c.platforms.map((p) => (
-                        <span key={p.platform} title={p.platform}>
-                          {p.platform === 'tiktok' ? '🎵' : p.platform === 'youtube' ? '▶️' : '📷'}
-                        </span>
+                        <PlatformIcon key={p.platform} platform={p.platform} size={14} />
                       ))}
                     </div>
                   )}
