@@ -84,6 +84,22 @@ export function BrowseCampaigns() {
                     <span className="text-base font-bold text-primary">{formatCurrency(c.cpm_cents)}</span>
                     <span className="text-xs text-gray-500">/ 1k views</span>
                   </div>
+                  {(() => {
+                    const percent = c.budget_cents > 0
+                      ? Math.min(100, Math.round((c.spent_cents / c.budget_cents) * 100))
+                      : 0;
+                    return (
+                      <div className="mt-2">
+                        <div className="flex justify-between text-[10px] text-gray-500">
+                          <span>Progresso</span>
+                          <span>{percent}%</span>
+                        </div>
+                        <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-gray-200">
+                          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div className="mt-3 flex-1" />
                   {c.is_subscribed ? (
                     <Link to={`/promoter/campaigns/${c.id}`} className="block w-full rounded-md border border-primary px-3 py-1.5 text-center text-xs font-medium text-primary hover:bg-primary/5">
