@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { isAxiosError } from 'axios';
 import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api';
 import { formatCurrency } from '@/lib/formatters';
+import { ImageUpload } from '@/components/shared/ImageUpload';
 
 export function CampaignForm() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export function CampaignForm() {
   const [description, setDescription] = useState('');
   const [contentUrl, setContentUrl] = useState('');
   const [contentInstructions, setContentInstructions] = useState('');
+  const [coverImageUrl, setCoverImageUrl] = useState('');
   const [budgetReais, setBudgetReais] = useState('');
   const [cpmReais, setCpmReais] = useState('');
   const [error, setError] = useState('');
@@ -27,6 +29,7 @@ export function CampaignForm() {
         setDescription(campaign.description);
         setContentUrl(campaign.content_url);
         setContentInstructions(campaign.content_instructions);
+        setCoverImageUrl(campaign.cover_image_url || '');
         setBudgetReais((campaign.budget_cents / 100).toFixed(2));
         setCpmReais((campaign.cpm_cents / 100).toFixed(2));
       })
@@ -49,6 +52,7 @@ export function CampaignForm() {
       description,
       content_url: contentUrl,
       content_instructions: contentInstructions,
+      cover_image_url: coverImageUrl,
       budget_cents: budgetCents,
       cpm_cents: cpmCents,
     };
@@ -89,6 +93,8 @@ export function CampaignForm() {
         {error && (
           <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
         )}
+
+        <ImageUpload value={coverImageUrl} onChange={setCoverImageUrl} />
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Titulo *</label>

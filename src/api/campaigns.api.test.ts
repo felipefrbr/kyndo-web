@@ -18,7 +18,7 @@ beforeEach(() => {
 
 const fakeCampaign = {
   id: 'c1', creator_id: 'u1', title: 'Test', description: 'D',
-  content_url: '', content_instructions: '',
+  content_url: '', content_instructions: '', cover_image_url: '',
   budget_cents: 10000, cpm_cents: 500, spent_cents: 0,
   status: 'draft' as const, created_at: '', updated_at: '',
 };
@@ -28,7 +28,7 @@ describe('campaigns.api', () => {
     mockedClient.post.mockResolvedValue({ data: { campaign: fakeCampaign } });
 
     const result = await createCampaign({
-      title: 'Test', description: 'D', content_url: '', content_instructions: '',
+      title: 'Test', description: 'D', content_url: '', content_instructions: '', cover_image_url: '',
       budget_cents: 10000, cpm_cents: 500,
     });
 

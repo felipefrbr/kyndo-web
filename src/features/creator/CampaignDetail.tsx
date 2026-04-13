@@ -73,6 +73,10 @@ export function CampaignDetail() {
         <ArrowLeft className="h-4 w-4" /> Voltar para campanhas
       </Link>
 
+      {campaign.cover_image_url && (
+        <img src={campaign.cover_image_url} alt={campaign.title} className="w-full rounded-lg object-cover max-h-80" />
+      )}
+
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">

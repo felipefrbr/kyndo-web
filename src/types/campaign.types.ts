@@ -7,6 +7,7 @@ export interface Campaign {
   description: string;
   content_url: string;
   content_instructions: string;
+  cover_image_url: string;
   budget_cents: number;
   cpm_cents: number;
   spent_cents: number;
@@ -23,6 +24,7 @@ export interface CreateCampaignRequest {
   description: string;
   content_url: string;
   content_instructions: string;
+  cover_image_url: string;
   budget_cents: number;
   cpm_cents: number;
 }
@@ -32,6 +34,7 @@ export interface UpdateCampaignRequest {
   description?: string;
   content_url?: string;
   content_instructions?: string;
+  cover_image_url?: string;
   budget_cents?: number;
   cpm_cents?: number;
 }

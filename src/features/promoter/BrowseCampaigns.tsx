@@ -66,38 +66,45 @@ export function BrowseCampaigns() {
         <>
           <div className="grid gap-4 md:grid-cols-2">
             {campaigns.map((c) => (
-              <div key={c.id} className="rounded-lg border bg-white p-5">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900">{c.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">por {c.creator_name}</p>
+              <div key={c.id} className="overflow-hidden rounded-lg border bg-white">
+                {c.cover_image_url ? (
+                  <img src={c.cover_image_url} alt={c.title} className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="h-40 w-full bg-gradient-to-br from-gray-100 to-gray-200" />
+                )}
+                <div className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900">{c.title}</h3>
+                      <p className="mt-1 text-sm text-gray-500">por {c.creator_name}</p>
+                    </div>
+                    {c.is_subscribed && (
+                      <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Inscrito</span>
+                    )}
                   </div>
-                  {c.is_subscribed && (
-                    <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Inscrito</span>
-                  )}
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">{c.description || 'Sem descricao'}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <div>
-                    <span className="text-lg font-bold text-primary">{formatCurrency(c.cpm_cents)}</span>
-                    <span className="text-sm text-gray-500"> / 1.000 views</span>
+                  <p className="mt-2 line-clamp-2 text-sm text-gray-600">{c.description || 'Sem descricao'}</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(c.cpm_cents)}</span>
+                      <span className="text-sm text-gray-500"> / 1.000 views</span>
+                    </div>
+                    <span className="text-xs text-gray-400">Orcamento: {formatCurrency(c.budget_cents)}</span>
                   </div>
-                  <span className="text-xs text-gray-400">Orcamento: {formatCurrency(c.budget_cents)}</span>
-                </div>
-                <div className="mt-4">
-                  {c.is_subscribed ? (
-                    <Link to={`/promoter/campaigns/${c.id}`} className="block w-full rounded-md border border-primary px-4 py-2 text-center text-sm font-medium text-primary hover:bg-primary/5">
-                      Ver Conteudo
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => handleSubscribe(c.id)}
-                      disabled={subscribing === c.id}
-                      className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-                    >
-                      {subscribing === c.id ? 'Inscrevendo...' : 'Inscrever-se'}
-                    </button>
-                  )}
+                  <div className="mt-4">
+                    {c.is_subscribed ? (
+                      <Link to={`/promoter/campaigns/${c.id}`} className="block w-full rounded-md border border-primary px-4 py-2 text-center text-sm font-medium text-primary hover:bg-primary/5">
+                        Ver Conteudo
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => handleSubscribe(c.id)}
+                        disabled={subscribing === c.id}
+                        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {subscribing === c.id ? 'Inscrevendo...' : 'Inscrever-se'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

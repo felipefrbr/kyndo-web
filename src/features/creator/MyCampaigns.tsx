@@ -62,8 +62,13 @@ export function MyCampaigns() {
               <Link
                 key={c.id}
                 to={`/creator/campaigns/${c.id}`}
-                className="flex items-center justify-between rounded-lg border bg-white p-5 transition-shadow hover:shadow-md"
+                className="flex items-center gap-4 rounded-lg border bg-white p-5 transition-shadow hover:shadow-md"
               >
+                {c.cover_image_url ? (
+                  <img src={c.cover_image_url} alt={c.title} className="h-20 w-20 flex-shrink-0 rounded-md object-cover" />
+                ) : (
+                  <div className="h-20 w-20 flex-shrink-0 rounded-md bg-gradient-to-br from-gray-100 to-gray-200" />
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
                     <h3 className="truncate text-lg font-semibold text-gray-900">{c.title}</h3>

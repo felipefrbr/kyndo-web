@@ -7,6 +7,7 @@ export interface MarketplaceCampaign {
   creator_name: string;
   title: string;
   description: string;
+  cover_image_url: string;
   budget_cents: number;
   cpm_cents: number;
   spent_cents: number;
