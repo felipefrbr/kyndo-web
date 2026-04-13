@@ -108,7 +108,16 @@ export function CampaignApproval() {
             <tbody className="divide-y">
               {campaigns.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{c.title}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    <div className="flex items-center gap-3">
+                      {c.cover_image_url ? (
+                        <img src={c.cover_image_url} alt="" className="h-10 w-10 flex-shrink-0 rounded object-cover" />
+                      ) : (
+                        <div className="h-10 w-10 flex-shrink-0 rounded bg-gradient-to-br from-gray-100 to-gray-200" />
+                      )}
+                      <span>{c.title}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                   <td className="px-4 py-3">{formatCurrency(c.budget_cents)}</td>
                   <td className="px-4 py-3">{formatCurrency(c.cpm_cents)}</td>
@@ -140,6 +149,9 @@ export function CampaignApproval() {
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            {selected.cover_image_url && (
+              <img src={selected.cover_image_url} alt={selected.title} className="mb-4 w-full rounded-md object-cover max-h-60" />
+            )}
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">{selected.title}</h3>
               <StatusBadge status={selected.status} />
