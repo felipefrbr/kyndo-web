@@ -161,11 +161,19 @@ export function CampaignDetail() {
         </div>
 
         <div className="rounded-lg border bg-white p-5">
-          <h2 className="text-sm font-medium text-gray-500">CPM (Valor por 1.000 views)</h2>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(campaign.cpm_cents)}</p>
-          <p className="mt-2 text-sm text-gray-500">
-            {campaign.cpm_cents > 0 ? Math.floor(campaign.budget_cents / campaign.cpm_cents) : 0} pagamentos possiveis
-          </p>
+          <h2 className="text-sm font-medium text-gray-500">Valor por 1.000 views</h2>
+          <div className="mt-2 space-y-1.5">
+            {(campaign.platforms ?? []).map((p) => {
+              const icon = p.platform === 'tiktok' ? '🎵' : p.platform === 'youtube' ? '▶️' : '📷';
+              const name = p.platform === 'tiktok' ? 'TikTok' : p.platform === 'youtube' ? 'YouTube' : 'Instagram';
+              return (
+                <div key={p.platform} className="flex items-center justify-between text-sm">
+                  <span>{icon} {name}</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(p.cpm_cents)}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

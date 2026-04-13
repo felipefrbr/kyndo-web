@@ -89,9 +89,19 @@ export function BrowseCampaigns() {
                     <p className="mt-1 text-[11px] text-indigo-600">Inicia em {formatDateTime(c.start_at)}</p>
                   )}
                   <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-[10px] text-gray-500">a partir de</span>
                     <span className="text-base font-bold text-primary">{formatCurrency(c.cpm_cents)}</span>
-                    <span className="text-xs text-gray-500">/ 1k views</span>
+                    <span className="text-xs text-gray-500">/ 1k</span>
                   </div>
+                  {c.platforms && c.platforms.length > 0 && (
+                    <div className="mt-1 flex gap-1 text-base">
+                      {c.platforms.map((p) => (
+                        <span key={p.platform} title={p.platform}>
+                          {p.platform === 'tiktok' ? '🎵' : p.platform === 'youtube' ? '▶️' : '📷'}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {(() => {
                     const percent = c.budget_cents > 0
                       ? Math.min(100, Math.round((c.spent_cents / c.budget_cents) * 100))

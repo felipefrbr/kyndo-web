@@ -3,13 +3,13 @@ import { Link, useParams } from 'react-router';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { getCampaignContent, createPost } from '@/api/marketplace.api';
 import { formatCurrency } from '@/lib/formatters';
-import type { Campaign } from '@/types/campaign.types';
+import type { Campaign, PlatformKey } from '@/types/campaign.types';
 
-const platformOptions = [
-  { value: 'tiktok', label: 'TikTok', icon: '🎵' },
-  { value: 'youtube', label: 'YouTube', icon: '▶️' },
-  { value: 'instagram', label: 'Instagram', icon: '📷' },
-];
+const PLATFORM_META: Record<PlatformKey, { label: string; icon: string }> = {
+  tiktok: { label: 'TikTok', icon: '🎵' },
+  youtube: { label: 'YouTube', icon: '▶️' },
+  instagram: { label: 'Instagram', icon: '📷' },
+};
 
 export function CampaignContent() {
   const { id } = useParams();
@@ -19,7 +19,7 @@ export function CampaignContent() {
   const [loading, setLoading] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
   const [postUrl, setPostUrl] = useState('');
-  const [platform, setPlatform] = useState('tiktok');
+  const [platform, setPlatform] = useState<PlatformKey>('tiktok');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -30,6 +30,9 @@ export function CampaignContent() {
         setCampaign(data.campaign);
         setContentUrl(data.content_url);
         setInstructions(data.content_instructions);
+        // Default platform selection to first accepted
+        const first = data.campaign.platforms?.[0]?.platform;
+        if (first) setPlatform(first);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -62,7 +65,7 @@ export function CampaignContent() {
 
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{campaign.title}</h1>
-        <p className="mt-1 text-sm text-gray-500">Ganhe <strong>{formatCurrency(campaign.cpm_cents)}</strong> a cada 1.000 views</p>
+        <p className="mt-1 text-sm text-gray-500">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> a cada 1.000 views</p>
       </div>
 
       <div className="rounded-lg border bg-white p-5">
@@ -104,19 +107,23 @@ export function CampaignContent() {
           <form onSubmit={handleSubmitPost} className="mt-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Plataforma</label>
-              <div className="mt-2 flex gap-2">
-                {platformOptions.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPlatform(p.value)}
-                    className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
-                      platform === p.value ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {p.icon} {p.label}
-                  </button>
-                ))}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(campaign.platforms ?? []).map((p) => {
+                  const meta = PLATFORM_META[p.platform];
+                  return (
+                    <button
+                      key={p.platform}
+                      type="button"
+                      onClick={() => setPlatform(p.platform)}
+                      className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
+                        platform === p.platform ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      <span>{meta.icon} {meta.label}</span>
+                      <span className="text-xs text-gray-500">{formatCurrency(p.cpm_cents)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

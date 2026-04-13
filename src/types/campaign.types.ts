@@ -1,5 +1,12 @@
 export type CampaignStatus = 'draft' | 'pending_approval' | 'approved' | 'active' | 'scheduled' | 'paused' | 'exhausted' | 'rejected';
 
+export type PlatformKey = 'tiktok' | 'youtube' | 'instagram';
+
+export interface CampaignPlatform {
+  platform: PlatformKey;
+  cpm_cents: number;
+}
+
 export interface Campaign {
   id: string;
   creator_id: string;
@@ -17,6 +24,7 @@ export interface Campaign {
   approved_at?: string;
   start_at?: string | null;
   end_at?: string | null;
+  platforms?: CampaignPlatform[];
   created_at: string;
   updated_at: string;
 }
@@ -28,9 +36,9 @@ export interface CreateCampaignRequest {
   content_instructions: string;
   cover_image_url: string;
   budget_cents: number;
-  cpm_cents: number;
   start_at?: string | null;
   end_at?: string | null;
+  platforms: CampaignPlatform[];
 }
 
 export interface UpdateCampaignRequest {
@@ -40,9 +48,9 @@ export interface UpdateCampaignRequest {
   content_instructions?: string;
   cover_image_url?: string;
   budget_cents?: number;
-  cpm_cents?: number;
   start_at?: string | null;
   end_at?: string | null;
+  platforms?: CampaignPlatform[];
 }
 
 export interface CampaignListResponse {

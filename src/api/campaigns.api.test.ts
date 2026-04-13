@@ -29,7 +29,8 @@ describe('campaigns.api', () => {
 
     const result = await createCampaign({
       title: 'Test', description: 'D', content_url: '', content_instructions: '', cover_image_url: '',
-      budget_cents: 10000, cpm_cents: 500,
+      budget_cents: 10000,
+      platforms: [{ platform: 'tiktok', cpm_cents: 500 }],
     });
 
     expect(mockedClient.post).toHaveBeenCalledWith('/campaigns', expect.objectContaining({ title: 'Test' }));

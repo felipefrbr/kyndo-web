@@ -1,5 +1,5 @@
 import client from './client';
-import type { Campaign } from '@/types/campaign.types';
+import type { Campaign, CampaignPlatform } from '@/types/campaign.types';
 
 export interface MarketplaceCampaign {
   id: string;
@@ -14,6 +14,7 @@ export interface MarketplaceCampaign {
   status: 'active' | 'scheduled';
   start_at?: string | null;
   end_at?: string | null;
+  platforms?: CampaignPlatform[];
   is_subscribed: boolean;
   created_at: string;
 }

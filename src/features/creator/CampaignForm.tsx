@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { isAxiosError } from 'axios';
 import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api';
-import { formatCurrency, toDatetimeLocalValue } from '@/lib/formatters';
+import { toDatetimeLocalValue } from '@/lib/formatters';
 import { ImageUpload } from '@/components/shared/ImageUpload';
+import type { PlatformKey } from '@/types/campaign.types';
+
+const PLATFORM_LABELS: Record<PlatformKey, { label: string; icon: string }> = {
+  tiktok: { label: 'TikTok', icon: '🎵' },
+  youtube: { label: 'YouTube', icon: '▶️' },
+  instagram: { label: 'Instagram', icon: '📷' },
+};
 
 export function CampaignForm() {
   const { id } = useParams();
@@ -16,7 +23,13 @@ export function CampaignForm() {
   const [contentInstructions, setContentInstructions] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [budgetReais, setBudgetReais] = useState('');
-  const [cpmReais, setCpmReais] = useState('');
+  // Per-platform state: CPM in "reais" string per platform; checkbox controls inclusion
+  const [platformEnabled, setPlatformEnabled] = useState<Record<PlatformKey, boolean>>({
+    tiktok: true, youtube: false, instagram: false,
+  });
+  const [platformCpm, setPlatformCpm] = useState<Record<PlatformKey, string>>({
+    tiktok: '', youtube: '', instagram: '',
+  });
   const [startMode, setStartMode] = useState<'immediate' | 'scheduled'>('immediate');
   const [endMode, setEndMode] = useState<'budget' | 'date'>('budget');
   const [startAtLocal, setStartAtLocal] = useState('');
@@ -35,7 +48,16 @@ export function CampaignForm() {
         setContentInstructions(campaign.content_instructions);
         setCoverImageUrl(campaign.cover_image_url || '');
         setBudgetReais((campaign.budget_cents / 100).toFixed(2));
-        setCpmReais((campaign.cpm_cents / 100).toFixed(2));
+        if (campaign.platforms && campaign.platforms.length > 0) {
+          const enabled: Record<PlatformKey, boolean> = { tiktok: false, youtube: false, instagram: false };
+          const cpms: Record<PlatformKey, string> = { tiktok: '', youtube: '', instagram: '' };
+          for (const p of campaign.platforms) {
+            enabled[p.platform] = true;
+            cpms[p.platform] = (p.cpm_cents / 100).toFixed(2);
+          }
+          setPlatformEnabled(enabled);
+          setPlatformCpm(cpms);
+        }
         if (campaign.start_at) {
           setStartMode('scheduled');
           setStartAtLocal(toDatetimeLocalValue(new Date(campaign.start_at)));
@@ -50,13 +72,25 @@ export function CampaignForm() {
   }, [id, navigate]);
 
   const budgetCents = Math.round(parseFloat(budgetReais || '0') * 100);
-  const cpmCents = Math.round(parseFloat(cpmReais || '0') * 100);
-  const payments = cpmCents > 0 ? Math.floor(budgetCents / cpmCents) : 0;
-  const isDivisible = cpmCents > 0 && budgetCents > 0 && budgetCents % cpmCents === 0;
+
+  const selectedPlatforms = (['tiktok', 'youtube', 'instagram'] as PlatformKey[])
+    .filter((k) => platformEnabled[k])
+    .map((k) => ({
+      platform: k,
+      cpm_cents: Math.round(parseFloat(platformCpm[k] || '0') * 100),
+    }));
+
+  const platformsValid = selectedPlatforms.length > 0 && selectedPlatforms.every((p) => p.cpm_cents > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!platformsValid) {
+      setError('Selecione pelo menos uma rede social e defina um CPM > 0 para cada.');
+      return;
+    }
+
     setLoading(true);
 
     // Convert datetime-local to ISO 8601; empty string signals "clear"
@@ -74,9 +108,9 @@ export function CampaignForm() {
       content_instructions: contentInstructions,
       cover_image_url: coverImageUrl,
       budget_cents: budgetCents,
-      cpm_cents: cpmCents,
       start_at: startAtISO || null,
       end_at: endAtISO || null,
+      platforms: selectedPlatforms,
     };
 
     try {
@@ -164,50 +198,53 @@ export function CampaignForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Orcamento Total (R$) *</label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-2 text-gray-500">R$</span>
-              <input
-                type="number"
-                required
-                min="0.01"
-                step="0.01"
-                value={budgetReais}
-                onChange={(e) => setBudgetReais(e.target.value)}
-                className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="100.00"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Valor por 1000 views (R$) *</label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-2 text-gray-500">R$</span>
-              <input
-                type="number"
-                required
-                min="0.01"
-                step="0.01"
-                value={cpmReais}
-                onChange={(e) => setCpmReais(e.target.value)}
-                className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="5.00"
-              />
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Orcamento Total (R$) *</label>
+          <div className="relative mt-1">
+            <span className="absolute left-3 top-2 text-gray-500">R$</span>
+            <input
+              type="number"
+              required
+              min="0.01"
+              step="0.01"
+              value={budgetReais}
+              onChange={(e) => setBudgetReais(e.target.value)}
+              className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="100.00"
+            />
           </div>
         </div>
 
-        {budgetCents > 0 && cpmCents > 0 && (
-          <div className={`rounded-md p-3 text-sm ${isDivisible ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
-            {isDivisible ? (
-              <>Este orcamento cobre <strong>{payments} pagamentos</strong> de {formatCurrency(cpmCents)} (a cada 1.000 views)</>
-            ) : (
-              <>O orcamento deve ser divisivel pelo valor do CPM. Ajuste os valores.</>
-            )}
-          </div>
-        )}
+        <div className="space-y-3 rounded-md border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-900">Redes Sociais e Valores</h3>
+          <p className="text-xs text-gray-500">Selecione pelo menos uma rede e defina quanto vai pagar a cada 1.000 views em cada uma.</p>
+          {(['tiktok', 'youtube', 'instagram'] as PlatformKey[]).map((k) => (
+            <div key={k} className="flex items-center gap-3">
+              <label className="flex min-w-[140px] items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={platformEnabled[k]}
+                  onChange={(e) => setPlatformEnabled((prev) => ({ ...prev, [k]: e.target.checked }))}
+                />
+                <span>{PLATFORM_LABELS[k].icon} {PLATFORM_LABELS[k].label}</span>
+              </label>
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-2 text-gray-500">R$</span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  disabled={!platformEnabled[k]}
+                  value={platformCpm[k]}
+                  onChange={(e) => setPlatformCpm((prev) => ({ ...prev, [k]: e.target.value }))}
+                  className="block w-full rounded-md border border-gray-300 py-1.5 pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="5.00"
+                />
+              </div>
+              <span className="text-xs text-gray-400">/ 1k views</span>
+            </div>
+          ))}
+        </div>
 
         <div className="space-y-4 rounded-md border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-900">Agendamento</h3>
@@ -267,7 +304,7 @@ export function CampaignForm() {
           </button>
           <button
             type="submit"
-            disabled={loading || (budgetCents > 0 && cpmCents > 0 && !isDivisible)}
+            disabled={loading || !platformsValid || budgetCents <= 0}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
             {loading ? 'Salvando...' : isEditing ? 'Salvar Alteracoes' : 'Salvar Rascunho'}
