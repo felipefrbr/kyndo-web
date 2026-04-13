@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Search, Clock } from 'lucide-react';
 import { listMarketplaceCampaigns, subscribeToCampaign, type MarketplaceCampaign } from '@/api/marketplace.api';
-import { formatCurrency, formatDateTime } from '@/lib/formatters';
+import { formatCurrency, formatCountdown } from '@/lib/formatters';
 
 export function BrowseCampaigns() {
   const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
@@ -12,6 +12,12 @@ export function BrowseCampaigns() {
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  // Force re-render every minute so countdown badges stay fresh
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const load = () => {
     setLoading(true);
@@ -76,9 +82,9 @@ export function BrowseCampaigns() {
                   {c.is_subscribed && (
                     <span className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-xs font-medium text-white shadow">Inscrito</span>
                   )}
-                  {c.status === 'scheduled' && (
+                  {c.status === 'scheduled' && c.start_at && (
                     <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-medium text-white shadow">
-                      <Clock className="h-3 w-3" /> Agendada
+                      <Clock className="h-3 w-3" /> {formatCountdown(c.start_at)}
                     </span>
                   )}
                 </div>
@@ -86,7 +92,7 @@ export function BrowseCampaigns() {
                   <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">{c.title}</h3>
                   <p className="mt-0.5 truncate text-xs text-gray-500">por {c.creator_name}</p>
                   {c.status === 'scheduled' && c.start_at && (
-                    <p className="mt-1 text-[11px] text-indigo-600">Inicia em {formatDateTime(c.start_at)}</p>
+                    <p className="mt-1 text-[11px] font-medium text-indigo-600">Comeca em {formatCountdown(c.start_at)}</p>
                   )}
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className="text-[10px] text-gray-500">a partir de</span>
