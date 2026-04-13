@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { isAxiosError } from 'axios';
 import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, toDatetimeLocalValue } from '@/lib/formatters';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 
 export function CampaignForm() {
@@ -17,6 +17,10 @@ export function CampaignForm() {
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [budgetReais, setBudgetReais] = useState('');
   const [cpmReais, setCpmReais] = useState('');
+  const [startMode, setStartMode] = useState<'immediate' | 'scheduled'>('immediate');
+  const [endMode, setEndMode] = useState<'budget' | 'date'>('budget');
+  const [startAtLocal, setStartAtLocal] = useState('');
+  const [endAtLocal, setEndAtLocal] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(isEditing);
@@ -32,6 +36,14 @@ export function CampaignForm() {
         setCoverImageUrl(campaign.cover_image_url || '');
         setBudgetReais((campaign.budget_cents / 100).toFixed(2));
         setCpmReais((campaign.cpm_cents / 100).toFixed(2));
+        if (campaign.start_at) {
+          setStartMode('scheduled');
+          setStartAtLocal(toDatetimeLocalValue(new Date(campaign.start_at)));
+        }
+        if (campaign.end_at) {
+          setEndMode('date');
+          setEndAtLocal(toDatetimeLocalValue(new Date(campaign.end_at)));
+        }
       })
       .catch(() => navigate('/creator/campaigns'))
       .finally(() => setLoadingData(false));
@@ -47,6 +59,14 @@ export function CampaignForm() {
     setError('');
     setLoading(true);
 
+    // Convert datetime-local to ISO 8601; empty string signals "clear"
+    const startAtISO = startMode === 'scheduled' && startAtLocal
+      ? new Date(startAtLocal).toISOString()
+      : '';
+    const endAtISO = endMode === 'date' && endAtLocal
+      ? new Date(endAtLocal).toISOString()
+      : '';
+
     const data = {
       title,
       description,
@@ -55,6 +75,8 @@ export function CampaignForm() {
       cover_image_url: coverImageUrl,
       budget_cents: budgetCents,
       cpm_cents: cpmCents,
+      start_at: startAtISO || null,
+      end_at: endAtISO || null,
     };
 
     try {
@@ -186,6 +208,54 @@ export function CampaignForm() {
             )}
           </div>
         )}
+
+        <div className="space-y-4 rounded-md border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-900">Agendamento</h3>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700">Inicio</p>
+            <div className="mt-2 space-y-2">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="radio" name="startMode" checked={startMode === 'immediate'} onChange={() => setStartMode('immediate')} />
+                Iniciar imediatamente ao ativar
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="radio" name="startMode" checked={startMode === 'scheduled'} onChange={() => setStartMode('scheduled')} />
+                Agendar inicio
+              </label>
+              {startMode === 'scheduled' && (
+                <input
+                  type="datetime-local"
+                  value={startAtLocal}
+                  onChange={(e) => setStartAtLocal(e.target.value)}
+                  className="ml-6 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700">Termino</p>
+            <div className="mt-2 space-y-2">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="radio" name="endMode" checked={endMode === 'budget'} onChange={() => setEndMode('budget')} />
+                Enquanto houver saldo
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="radio" name="endMode" checked={endMode === 'date'} onChange={() => setEndMode('date')} />
+                Terminar em uma data
+              </label>
+              {endMode === 'date' && (
+                <input
+                  type="datetime-local"
+                  value={endAtLocal}
+                  onChange={(e) => setEndAtLocal(e.target.value)}
+                  className="ml-6 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="flex gap-3">
           <button

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Pencil, Send, ArrowLeft, Zap } from 'lucide-react';
 import { getCampaign, submitCampaign, activateCampaign } from '@/api/campaigns.api';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { Campaign } from '@/types/campaign.types';
 
@@ -139,6 +139,12 @@ export function CampaignDetail() {
         </div>
       )}
 
+      {campaign.status === 'scheduled' && campaign.start_at && (
+        <div className="rounded-md bg-indigo-50 p-4 text-sm text-indigo-700">
+          Campanha agendada para iniciar em <strong>{formatDateTime(campaign.start_at)}</strong>.
+        </div>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg border bg-white p-5">
           <h2 className="text-sm font-medium text-gray-500">Orcamento</h2>
@@ -159,6 +165,21 @@ export function CampaignDetail() {
           <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(campaign.cpm_cents)}</p>
           <p className="mt-2 text-sm text-gray-500">
             {campaign.cpm_cents > 0 ? Math.floor(campaign.budget_cents / campaign.cpm_cents) : 0} pagamentos possiveis
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-lg border bg-white p-5">
+          <h2 className="text-sm font-medium text-gray-500">Inicio</h2>
+          <p className="mt-1 text-lg font-semibold text-gray-900">
+            {campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato ao ativar'}
+          </p>
+        </div>
+        <div className="rounded-lg border bg-white p-5">
+          <h2 className="text-sm font-medium text-gray-500">Termino</h2>
+          <p className="mt-1 text-lg font-semibold text-gray-900">
+            {campaign.end_at ? formatDateTime(campaign.end_at) : 'Enquanto houver saldo'}
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-export type CampaignStatus = 'draft' | 'pending_approval' | 'approved' | 'active' | 'paused' | 'exhausted' | 'rejected';
+export type CampaignStatus = 'draft' | 'pending_approval' | 'approved' | 'active' | 'scheduled' | 'paused' | 'exhausted' | 'rejected';
 
 export interface Campaign {
   id: string;
@@ -15,6 +15,8 @@ export interface Campaign {
   rejection_reason?: string;
   paid_at?: string;
   approved_at?: string;
+  start_at?: string | null;
+  end_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +29,8 @@ export interface CreateCampaignRequest {
   cover_image_url: string;
   budget_cents: number;
   cpm_cents: number;
+  start_at?: string | null;
+  end_at?: string | null;
 }
 
 export interface UpdateCampaignRequest {
@@ -37,6 +41,8 @@ export interface UpdateCampaignRequest {
   cover_image_url?: string;
   budget_cents?: number;
   cpm_cents?: number;
+  start_at?: string | null;
+  end_at?: string | null;
 }
 
 export interface CampaignListResponse {

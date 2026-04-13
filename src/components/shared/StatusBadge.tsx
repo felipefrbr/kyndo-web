@@ -5,6 +5,7 @@ const statusConfig: Record<CampaignStatus, { label: string; color: string }> = {
   pending_approval: { label: 'Aguardando Aprovacao', color: 'bg-yellow-100 text-yellow-700' },
   approved: { label: 'Aprovada', color: 'bg-blue-100 text-blue-700' },
   active: { label: 'Ativa', color: 'bg-green-100 text-green-700' },
+  scheduled: { label: 'Agendada', color: 'bg-indigo-100 text-indigo-700' },
   paused: { label: 'Pausada', color: 'bg-orange-100 text-orange-700' },
   exhausted: { label: 'Encerrada', color: 'bg-purple-100 text-purple-700' },
   rejected: { label: 'Rejeitada', color: 'bg-red-100 text-red-700' },
