@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Search, Clock } from 'lucide-react';
-import { listMarketplaceCampaigns, subscribeToCampaign, type MarketplaceCampaign } from '@/api/marketplace.api';
+import { listMarketplaceCampaigns, type MarketplaceCampaign } from '@/api/marketplace.api';
 import { formatCurrency, formatCountdown } from '@/lib/formatters';
 import { PlatformIcon } from '@/components/shared/PlatformIcon';
 
@@ -12,7 +12,6 @@ export function BrowseCampaigns() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
-  const [subscribing, setSubscribing] = useState<string | null>(null);
   // Force re-render every minute so countdown badges stay fresh
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -28,18 +27,6 @@ export function BrowseCampaigns() {
   };
 
   useEffect(load, [page, search]);
-
-  const handleSubscribe = async (id: string) => {
-    setSubscribing(id);
-    try {
-      await subscribeToCampaign(id);
-      load();
-    } catch {
-      alert('Erro ao se inscrever.');
-    } finally {
-      setSubscribing(null);
-    }
-  };
 
   const totalPages = Math.max(1, Math.ceil(total / 10));
 
@@ -124,19 +111,16 @@ export function BrowseCampaigns() {
                     );
                   })()}
                   <div className="mt-3 flex-1" />
-                  {c.is_subscribed ? (
-                    <Link to={`/promoter/campaigns/${c.id}`} className="block w-full rounded-md border border-primary px-3 py-1.5 text-center text-xs font-medium text-primary hover:bg-primary/5">
-                      Ver Conteudo
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => handleSubscribe(c.id)}
-                      disabled={subscribing === c.id}
-                      className="w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-                    >
-                      {subscribing === c.id ? 'Inscrevendo...' : 'Inscrever-se'}
-                    </button>
-                  )}
+                  <Link
+                    to={`/promoter/campaigns/${c.id}`}
+                    className={`block w-full rounded-md px-3 py-1.5 text-center text-xs font-medium ${
+                      c.is_subscribed
+                        ? 'border border-primary text-primary hover:bg-primary/5'
+                        : 'bg-primary text-white hover:bg-primary/90'
+                    }`}
+                  >
+                    {c.is_subscribed ? 'Ver Campanha' : 'Ver Campanha'}
+                  </Link>
                 </div>
               </div>
             ))}

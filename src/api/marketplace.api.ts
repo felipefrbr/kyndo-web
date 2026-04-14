@@ -38,7 +38,12 @@ export async function subscribeToCampaign(campaignId: string): Promise<unknown> 
   return response.data;
 }
 
-export async function getCampaignContent(campaignId: string): Promise<{ content_url: string; content_instructions: string; campaign: Campaign }> {
+export async function unsubscribeFromCampaign(campaignId: string): Promise<unknown> {
+  const response = await client.delete(`/campaigns/${campaignId}/subscribe`);
+  return response.data;
+}
+
+export async function getCampaignContent(campaignId: string): Promise<{ content_url: string; content_instructions: string; campaign: Campaign; is_subscribed: boolean }> {
   const response = await client.get(`/campaigns/${campaignId}/content`);
   return response.data;
 }
