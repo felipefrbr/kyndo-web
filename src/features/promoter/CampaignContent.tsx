@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { getCampaignContent, createPost, subscribeToCampaign, unsubscribeFromCampaign } from '@/api/marketplace.api';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import type { Campaign, PlatformKey } from '@/types/campaign.types';
 
@@ -113,6 +113,29 @@ export function CampaignContent() {
               {subscribing ? '...' : 'Inscrever-se'}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Key info cards */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border bg-white p-4">
+          <p className="text-xs text-gray-500">Orcamento Total</p>
+          <p className="mt-1 text-lg font-bold text-gray-900">{formatCurrency(campaign.budget_cents)}</p>
+          {campaign.budget_cents > 0 && campaign.spent_cents > 0 && (
+            <p className="mt-1 text-xs text-gray-400">{Math.round((campaign.spent_cents / campaign.budget_cents) * 100)}% utilizado</p>
+          )}
+        </div>
+        <div className="rounded-lg border bg-white p-4">
+          <p className="text-xs text-gray-500">Inicio</p>
+          <p className="mt-1 text-sm font-semibold text-gray-900">
+            {campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato'}
+          </p>
+        </div>
+        <div className="rounded-lg border bg-white p-4">
+          <p className="text-xs text-gray-500">Termino</p>
+          <p className="mt-1 text-sm font-semibold text-gray-900">
+            {campaign.end_at ? formatDateTime(campaign.end_at) : 'Ate acabar o saldo'}
+          </p>
         </div>
       </div>
 
