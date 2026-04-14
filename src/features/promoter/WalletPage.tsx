@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp } from 'lucide-react';
 import { getWallet, listTransactions, requestWithdrawal, type WalletTransaction } from '@/api/wallet.api';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { useAuth } from '@/auth/useAuth';
@@ -68,49 +68,60 @@ export function WalletPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Carteira</h1>
-
-      <div className="rounded-lg border bg-white p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">Saldo disponivel</p>
-            <p className="text-3xl font-bold text-gray-900">{formatCurrency(balanceCents)}</p>
-          </div>
-          {user?.role === 'promoter' && (
-            <button onClick={() => setShowWithdraw(true)} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-              <Wallet className="h-4 w-4" /> Solicitar Saque
-            </button>
-          )}
-        </div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Carteira</h1>
+        <p className="mt-1 text-sm text-gray-500">Gerencie seus ganhos e saques</p>
       </div>
 
-      <div className="rounded-lg border bg-white">
-        <div className="border-b px-5 py-3">
-          <h2 className="font-medium text-gray-900">Extrato</h2>
+      {/* Balance card */}
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-white/70">Saldo disponivel</p>
+            <p className="mt-1 text-4xl font-bold">{formatCurrency(balanceCents)}</p>
+          </div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+            <TrendingUp className="h-7 w-7 text-white" />
+          </div>
+        </div>
+        {user?.role === 'promoter' && (
+          <button onClick={() => setShowWithdraw(true)}
+            className="mt-5 flex items-center gap-2 rounded-xl bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/30">
+            <Wallet className="h-4 w-4" /> Solicitar Saque
+          </button>
+        )}
+      </div>
+
+      {/* Transactions */}
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+        <div className="px-6 py-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">Extrato</h2>
         </div>
         {txs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Nenhuma transacao ainda.</div>
+          <div className="px-6 pb-8 pt-4 text-center text-sm text-gray-500">Nenhuma transacao ainda.</div>
         ) : (
-          <div className="divide-y">
-            {txs.map((t) => (
-              <div key={t.id} className="flex items-center justify-between px-5 py-3">
-                <div className="flex items-center gap-3">
-                  {t.amount_cents >= 0 ? (
-                    <ArrowDownCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <ArrowUpCircle className="h-5 w-5 text-red-500" />
-                  )}
+          <div>
+            {txs.map((t, i) => (
+              <div key={t.id} className={`flex items-center justify-between px-6 py-4 transition-colors hover:bg-gray-50 ${i > 0 ? 'border-t border-gray-50' : ''}`}>
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full ${t.amount_cents >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                    {t.amount_cents >= 0 ? (
+                      <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <ArrowUpCircle className="h-5 w-5 text-red-600" />
+                    )}
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{txTypeLabels[t.tx_type] || t.tx_type}</p>
-                    <p className="text-xs text-gray-500">{t.description}</p>
+                    <p className="mt-0.5 max-w-[300px] truncate text-xs text-gray-400">{t.description}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-sm font-medium ${t.amount_cents >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm font-bold ${t.amount_cents >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {t.amount_cents >= 0 ? '+' : ''}{formatCurrency(t.amount_cents)}
                   </p>
-                  <p className="text-xs text-gray-400">{formatDate(t.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">{formatDate(t.created_at)}</p>
                 </div>
               </div>
             ))}
@@ -119,51 +130,66 @@ export function WalletPage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border px-3 py-1 text-sm disabled:opacity-50">Anterior</button>
-          <span className="text-sm text-gray-600">Pagina {page} de {totalPages}</span>
-          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded-md border px-3 py-1 text-sm disabled:opacity-50">Proxima</button>
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+            className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md disabled:opacity-50">
+            Anterior
+          </button>
+          <span className="text-sm text-gray-500">Pagina {page} de {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md disabled:opacity-50">
+            Proxima
+          </button>
         </div>
       )}
 
       {/* Withdraw Modal */}
       {showWithdraw && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900">Solicitar Saque</h3>
-            <p className="mt-1 text-sm text-gray-500">Saldo disponivel: {formatCurrency(balanceCents)}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="h-1.5 bg-gradient-to-r from-primary to-primary/60" />
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900">Solicitar Saque</h3>
+              <p className="mt-1 text-sm text-gray-500">Saldo disponivel: <strong>{formatCurrency(balanceCents)}</strong></p>
 
-            <form onSubmit={handleWithdraw} className="mt-4 space-y-4">
-              {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+              <form onSubmit={handleWithdraw} className="mt-5 space-y-4">
+                {error && <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                <div className="relative mt-1">
-                  <span className="absolute left-3 top-2 text-gray-500">R$</span>
-                  <input type="number" min="10" step="0.01" required value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" placeholder="10.00" />
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400">Valor (R$)</label>
+                  <div className="relative mt-2">
+                    <span className="absolute left-4 top-2.5 text-gray-400">R$</span>
+                    <input type="number" min="10" step="0.01" required value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)}
+                      className="block w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm shadow-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="10.00" />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Chave PIX</label>
-                <input type="text" required value={pixKey} onChange={(e) => setPixKey(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" placeholder="CPF, email, telefone ou chave aleatoria" />
-              </div>
-
-              {withdrawAmount && parseFloat(withdrawAmount) >= 10 && (
-                <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
-                  Voce recebera <strong>{formatCurrency(Math.round(parseFloat(withdrawAmount) * 100))}</strong> na chave PIX: <strong>{pixKey || '...'}</strong>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400">Chave PIX</label>
+                  <input type="text" required value={pixKey} onChange={(e) => setPixKey(e.target.value)}
+                    className="mt-2 block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm shadow-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="CPF, email, telefone ou chave aleatoria" />
                 </div>
-              )}
 
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => { setShowWithdraw(false); setError(''); }} className="rounded-md border px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Cancelar</button>
-                <button type="submit" disabled={withdrawing} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
-                  {withdrawing ? 'Solicitando...' : 'Confirmar Saque'}
-                </button>
-              </div>
-            </form>
+                {withdrawAmount && parseFloat(withdrawAmount) >= 10 && (
+                  <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
+                    Voce recebera <strong>{formatCurrency(Math.round(parseFloat(withdrawAmount) * 100))}</strong> na chave PIX: <strong>{pixKey || '...'}</strong>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => { setShowWithdraw(false); setError(''); }}
+                    className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-shadow hover:shadow-sm">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={withdrawing}
+                    className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-shadow hover:shadow-md disabled:opacity-50">
+                    {withdrawing ? 'Solicitando...' : 'Confirmar'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
