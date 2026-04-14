@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { isAxiosError } from 'axios';
 import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api';
-import { toDatetimeLocalValue } from '@/lib/formatters';
+import { formatCurrency, toDatetimeLocalValue } from '@/lib/formatters';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
+import { getWallet } from '@/api/wallet.api';
+import { getPlatformConfig } from '@/api/platform.api';
 import type { CampaignStatus, PlatformKey } from '@/types/campaign.types';
 
 export function CampaignForm() {
@@ -36,8 +38,20 @@ export function CampaignForm() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(isEditing);
 
+  const [balanceCents, setBalanceCents] = useState(0);
+  const [feeRate, setFeeRate] = useState(0);
+  const [ackCheckbox, setAckCheckbox] = useState(false);
+
   // Live campaign = active or scheduled. Some fields become read-only.
   const isLive = campaignStatus === 'active' || campaignStatus === 'scheduled';
+
+  // Load wallet balance and platform fee config
+  useEffect(() => {
+    Promise.all([getWallet(), getPlatformConfig()]).then(([w, cfg]) => {
+      setBalanceCents(w.wallet.balance_cents);
+      setFeeRate(cfg.fee_rate);
+    });
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -77,6 +91,9 @@ export function CampaignForm() {
   }, [id, navigate]);
 
   const budgetCents = Math.round(parseFloat(budgetReais || '0') * 100);
+  const feeCents = Math.ceil(budgetCents * feeRate);
+  const totalCents = budgetCents + feeCents;
+  const insufficientBalance = budgetCents > 0 && totalCents > balanceCents;
 
   const selectedPlatforms = (['tiktok', 'youtube', 'instagram'] as PlatformKey[])
     .filter((k) => platformEnabled[k])
@@ -313,6 +330,48 @@ export function CampaignForm() {
           </div>
         </div>
 
+        {/* Cost breakdown */}
+        {budgetCents > 0 && feeRate > 0 && (
+          <div className={`rounded-xl p-4 text-sm ${insufficientBalance ? 'bg-red-50 border border-red-200' : 'bg-gray-50'}`}>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Orcamento</span>
+                <span className="font-medium text-gray-900">{formatCurrency(budgetCents)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Taxa da plataforma ({(feeRate * 100).toFixed(0)}%)</span>
+                <span className="font-medium text-gray-900">{formatCurrency(feeCents)}</span>
+              </div>
+              <div className="flex justify-between border-t pt-1 mt-1">
+                <span className="font-semibold text-gray-900">Total a debitar</span>
+                <span className="font-bold text-gray-900">{formatCurrency(totalCents)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Seu saldo</span>
+                <span className={`font-medium ${insufficientBalance ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(balanceCents)}</span>
+              </div>
+            </div>
+            {insufficientBalance && (
+              <p className="mt-2 text-xs font-medium text-red-600">Saldo insuficiente. Deposite mais fundos antes de criar esta campanha.</p>
+            )}
+          </div>
+        )}
+
+        {/* Acknowledgment checkbox */}
+        {budgetCents > 0 && !isLive && (
+          <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={ackCheckbox}
+              onChange={(e) => setAckCheckbox(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-gray-700">
+              Estou ciente de que <strong>{formatCurrency(totalCents)}</strong> sera debitado da minha carteira ao ativar esta campanha.
+            </span>
+          </label>
+        )}
+
         <div className="flex gap-3">
           <button
             type="button"
@@ -323,7 +382,7 @@ export function CampaignForm() {
           </button>
           <button
             type="submit"
-            disabled={loading || !platformsValid || budgetCents <= 0}
+            disabled={loading || !platformsValid || budgetCents <= 0 || insufficientBalance || (!isLive && !ackCheckbox)}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
             {loading ? 'Salvando...' : isEditing ? 'Salvar Alteracoes' : 'Salvar Rascunho'}

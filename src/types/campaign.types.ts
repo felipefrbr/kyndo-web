@@ -18,6 +18,9 @@ export interface Campaign {
   budget_cents: number;
   cpm_cents: number;
   spent_cents: number;
+  fee_cents: number;
+  total_cents: number;
+  fee_rate: number;
   status: CampaignStatus;
   rejection_reason?: string;
   paid_at?: string;

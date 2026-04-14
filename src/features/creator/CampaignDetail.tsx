@@ -5,6 +5,7 @@ import { getCampaign, submitCampaign, activateCampaign } from '@/api/campaigns.a
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { getWallet } from '@/api/wallet.api';
 import type { Campaign } from '@/types/campaign.types';
 
 export function CampaignDetail() {
@@ -16,6 +17,12 @@ export function CampaignDetail() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showActivate, setShowActivate] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const openActivateModal = () => {
+    getWallet().then((w) => setWalletBalance(w.wallet.balance_cents));
+    setShowActivate(true);
+  };
 
   const load = useCallback(() => {
     if (!id) return;
@@ -118,10 +125,10 @@ export function CampaignDetail() {
           )}
           {campaign.status === 'approved' && (
             <button
-              onClick={() => setShowActivate(true)}
+              onClick={openActivateModal}
               className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-shadow hover:shadow-md hover:bg-green-700"
             >
-              <Zap className="h-4 w-4" /> Ativar Campanha ({formatCurrency(campaign.budget_cents)})
+              <Zap className="h-4 w-4" /> Ativar Campanha ({formatCurrency(campaign.total_cents)})
             </button>
           )}
         </div>
@@ -278,34 +285,51 @@ export function CampaignDetail() {
       )}
 
       {/* Activate Modal */}
-      {showActivate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="h-1 bg-gradient-to-r from-green-500 to-green-400" />
+      {showActivate && (() => {
+        const insufficientActivate = campaign.total_cents > walletBalance;
+        return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="h-1.5 bg-gradient-to-r from-green-500 to-green-400" />
             <div className="p-6">
               <h3 className="text-lg font-bold text-gray-900">Ativar Campanha?</h3>
               <p className="mt-2 text-sm text-gray-600">
-                Ao ativar, o valor do orcamento sera debitado e sua campanha ficara disponivel para os divulgadores.
+                O valor sera debitado da sua carteira e a campanha ficara disponivel para os divulgadores.
               </p>
-              <div className="mt-4 rounded-xl bg-gray-50 p-3 text-sm">
-                <p><strong>Titulo:</strong> {campaign.title}</p>
-                <p><strong>Valor a pagar:</strong> {formatCurrency(campaign.budget_cents)}</p>
-                <p><strong>CPM:</strong> {formatCurrency(campaign.cpm_cents)}</p>
-                <p><strong>Pagamentos:</strong> {campaign.cpm_cents > 0 ? Math.floor(campaign.budget_cents / campaign.cpm_cents) : 0}x de {formatCurrency(campaign.cpm_cents)} (a cada 1.000 views)</p>
+              <div className="mt-4 rounded-xl bg-gray-50 p-4 text-sm space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Orcamento</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(campaign.budget_cents)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Taxa ({(campaign.fee_rate * 100).toFixed(0)}%)</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(campaign.fee_cents)}</span>
+                </div>
+                <div className="flex justify-between border-t pt-1.5 mt-1.5">
+                  <span className="font-bold text-gray-900">Total</span>
+                  <span className="font-bold text-gray-900">{formatCurrency(campaign.total_cents)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Seu saldo</span>
+                  <span className={`font-medium ${insufficientActivate ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(walletBalance)}</span>
+                </div>
               </div>
-              <p className="mt-3 text-xs text-gray-400">No PoC, o pagamento e simulado.</p>
+              {insufficientActivate && (
+                <p className="mt-3 text-xs font-medium text-red-600">Saldo insuficiente. Deposite mais fundos antes de ativar.</p>
+              )}
               <div className="mt-6 flex justify-end gap-3">
                 <button onClick={() => setShowActivate(false)} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:shadow-md">
                   Cancelar
                 </button>
-                <button onClick={handleActivate} disabled={activating} className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow-md hover:bg-green-700 disabled:opacity-50">
-                  {activating ? 'Ativando...' : `Pagar ${formatCurrency(campaign.budget_cents)} e Ativar`}
+                <button onClick={handleActivate} disabled={activating || insufficientActivate} className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow-md hover:bg-green-700 disabled:opacity-50">
+                  {activating ? 'Ativando...' : `Pagar ${formatCurrency(campaign.total_cents)} e Ativar`}
                 </button>
               </div>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
