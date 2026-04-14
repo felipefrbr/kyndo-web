@@ -81,24 +81,24 @@ export function CampaignContent() {
       {/* Hero section */}
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
         {campaign.cover_image_url ? (
-          <div className="relative h-56 sm:h-72">
+          <div className="relative h-44 sm:h-56 md:h-72">
             <img src={campaign.cover_image_url} alt={campaign.title} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h1 className="text-2xl font-bold sm:text-3xl">{campaign.title}</h1>
-              <p className="mt-1 text-sm text-white/80">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
+            <div className="absolute bottom-0 left-0 right-0 p-4 text-white sm:p-6">
+              <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">{campaign.title}</h1>
+              <p className="mt-1 text-xs text-white/80 sm:text-sm">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{campaign.title}</h1>
-            <p className="mt-1 text-sm text-gray-500">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 sm:p-6">
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">{campaign.title}</h1>
+            <p className="mt-1 text-xs text-gray-500 sm:text-sm">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
           </div>
         )}
 
         {/* Action bar */}
-        <div className="flex items-center justify-between border-t px-6 py-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex flex-wrap items-center gap-2">
             {(campaign.platforms ?? []).map((p) => (
               <div key={p.platform} className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
                 <PlatformIcon platform={p.platform} size={14} />
@@ -114,7 +114,7 @@ export function CampaignContent() {
               </button>
             </div>
           ) : (
-            <button onClick={handleSubscribe} disabled={subscribing} className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
+            <button onClick={handleSubscribe} disabled={subscribing} className="w-full rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50 sm:w-auto">
               {subscribing ? '...' : 'Inscrever-se'}
             </button>
           )}
@@ -122,35 +122,35 @@ export function CampaignContent() {
       </div>
 
       {/* Stats strip */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
             <Wallet className="h-5 w-5 text-green-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-gray-500">Orcamento</p>
             <p className="text-sm font-bold text-gray-900">{formatCurrency(campaign.budget_cents)}</p>
-            <div className="mt-1 h-1 w-20 overflow-hidden rounded-full bg-gray-200">
+            <div className="mt-1 h-1 w-full max-w-[80px] overflow-hidden rounded-full bg-gray-200">
               <div className="h-full rounded-full bg-green-500" style={{ width: `${spentPercent}%` }} />
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
             <Calendar className="h-5 w-5 text-blue-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-gray-500">Inicio</p>
-            <p className="text-sm font-semibold text-gray-900">{campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato'}</p>
+            <p className="truncate text-sm font-semibold text-gray-900">{campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-100">
             <Clock className="h-5 w-5 text-orange-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-gray-500">Termino</p>
-            <p className="text-sm font-semibold text-gray-900">{campaign.end_at ? formatDateTime(campaign.end_at) : 'Ate o saldo'}</p>
+            <p className="truncate text-sm font-semibold text-gray-900">{campaign.end_at ? formatDateTime(campaign.end_at) : 'Ate o saldo'}</p>
           </div>
         </div>
       </div>
