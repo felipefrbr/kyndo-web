@@ -6,6 +6,17 @@ import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
 import type { Campaign, PlatformKey } from '@/types/campaign.types';
 
+const PLATFORM_DOMAINS: Record<PlatformKey, string[]> = {
+  tiktok: ['tiktok.com'],
+  youtube: ['youtube.com', 'youtu.be'],
+  instagram: ['instagram.com'],
+};
+
+function urlMatchesPlatform(url: string, platform: PlatformKey): boolean {
+  const lower = url.toLowerCase();
+  return PLATFORM_DOMAINS[platform]?.some((d) => lower.includes(d)) ?? false;
+}
+
 export function CampaignContent() {
   const { id } = useParams();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -44,9 +55,12 @@ export function CampaignContent() {
     setSubscribing(true);
     try { await unsubscribeFromCampaign(id); setIsSubscribed(false); } catch { alert('Erro ao cancelar inscricao.'); } finally { setSubscribing(false); }
   };
+  const urlMismatch = postUrl.length > 10 && !urlMatchesPlatform(postUrl, platform);
+
   const handleSubmitPost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+    if (urlMismatch) return;
     setSubmitting(true);
     try { await createPost(id, postUrl, platform); setSubmitted(true); setPostUrl(''); setShowPostForm(false); } catch { alert('Erro ao submeter post.'); } finally { setSubmitting(false); }
   };
@@ -207,12 +221,23 @@ export function CampaignContent() {
                       </button>
                     ))}
                   </div>
-                  <input type="url" required value={postUrl} onChange={(e) => setPostUrl(e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    placeholder="https://..." />
+                  <div>
+                    <input type="url" required value={postUrl} onChange={(e) => setPostUrl(e.target.value)}
+                      className={`block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                        urlMismatch
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:border-primary focus:ring-primary'
+                      }`}
+                      placeholder={`https://${PLATFORM_DOMAINS[platform]?.[0] ?? '...'}/...`} />
+                    {urlMismatch && (
+                      <p className="mt-1 text-xs text-red-600">
+                        Este link nao parece ser do {platformLabel(platform)}. Verifique a URL ou selecione outra plataforma.
+                      </p>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setShowPostForm(false)} className="flex-1 rounded-lg border px-3 py-2 text-xs text-gray-600 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" disabled={submitting} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50">
+                    <button type="submit" disabled={submitting || urlMismatch} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50">
                       {submitting ? '...' : 'Enviar'}
                     </button>
                   </div>
