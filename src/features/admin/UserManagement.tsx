@@ -36,16 +36,19 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
+        <p className="mt-1 text-sm text-gray-500">Gerenciamento de usuarios da plataforma</p>
+      </div>
 
       <div className="flex gap-2">
         {roles.map((r) => (
           <button
             key={r.value}
             onClick={() => { setRoleFilter(r.value); setPage(1); }}
-            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
               roleFilter === r.value
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-white shadow-sm'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -59,9 +62,9 @@ export function UserManagement() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border bg-white">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+            <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-400">
               <tr>
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">Email</th>
@@ -74,7 +77,7 @@ export function UserManagement() {
               {users.map((u) => {
                 const badge = roleBadge[u.role] ?? { label: u.role, color: 'bg-gray-100 text-gray-700' };
                 return (
-                  <tr key={u.id} className="hover:bg-gray-50">
+                  <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                     <td className="px-4 py-3 text-gray-500">{u.email}</td>
                     <td className="px-4 py-3">
@@ -94,9 +97,9 @@ export function UserManagement() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border px-3 py-1 text-sm disabled:opacity-50">Anterior</button>
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-xl border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm hover:shadow-md transition-shadow disabled:opacity-50">Anterior</button>
           <span className="text-sm text-gray-600">Pagina {page} de {totalPages}</span>
-          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded-md border px-3 py-1 text-sm disabled:opacity-50">Proxima</button>
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded-xl border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm hover:shadow-md transition-shadow disabled:opacity-50">Proxima</button>
         </div>
       )}
     </div>
