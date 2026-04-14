@@ -5,7 +5,7 @@ import { createCampaign, getCampaign, updateCampaign } from '@/api/campaigns.api
 import { toDatetimeLocalValue } from '@/lib/formatters';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
-import type { PlatformKey } from '@/types/campaign.types';
+import type { CampaignStatus, PlatformKey } from '@/types/campaign.types';
 
 export function CampaignForm() {
   const { id } = useParams();
@@ -18,13 +18,16 @@ export function CampaignForm() {
   const [contentInstructions, setContentInstructions] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [budgetReais, setBudgetReais] = useState('');
-  // Per-platform state: CPM in "reais" string per platform; checkbox controls inclusion
+  const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('draft');
+  // Per-platform state
   const [platformEnabled, setPlatformEnabled] = useState<Record<PlatformKey, boolean>>({
     tiktok: true, youtube: false, instagram: false,
   });
   const [platformCpm, setPlatformCpm] = useState<Record<PlatformKey, string>>({
     tiktok: '', youtube: '', instagram: '',
   });
+  // Track which platforms existed before editing (to lock CPM on active campaigns)
+  const [originalPlatforms, setOriginalPlatforms] = useState<Set<PlatformKey>>(new Set());
   const [startMode, setStartMode] = useState<'immediate' | 'scheduled'>('immediate');
   const [endMode, setEndMode] = useState<'budget' | 'date'>('budget');
   const [startAtLocal, setStartAtLocal] = useState('');
@@ -32,6 +35,9 @@ export function CampaignForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(isEditing);
+
+  // Live campaign = active or scheduled. Some fields become read-only.
+  const isLive = campaignStatus === 'active' || campaignStatus === 'scheduled';
 
   useEffect(() => {
     if (!id) return;
@@ -43,15 +49,19 @@ export function CampaignForm() {
         setContentInstructions(campaign.content_instructions);
         setCoverImageUrl(campaign.cover_image_url || '');
         setBudgetReais((campaign.budget_cents / 100).toFixed(2));
+        setCampaignStatus(campaign.status);
         if (campaign.platforms && campaign.platforms.length > 0) {
           const enabled: Record<PlatformKey, boolean> = { tiktok: false, youtube: false, instagram: false };
           const cpms: Record<PlatformKey, string> = { tiktok: '', youtube: '', instagram: '' };
+          const origSet = new Set<PlatformKey>();
           for (const p of campaign.platforms) {
             enabled[p.platform] = true;
             cpms[p.platform] = (p.cpm_cents / 100).toFixed(2);
+            origSet.add(p.platform);
           }
           setPlatformEnabled(enabled);
           setPlatformCpm(cpms);
+          setOriginalPlatforms(origSet);
         }
         if (campaign.start_at) {
           setStartMode('scheduled');
@@ -195,6 +205,7 @@ export function CampaignForm() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Orcamento Total (R$) *</label>
+          {isLive && <p className="mt-0.5 text-xs text-amber-600">Nao pode ser alterado com a campanha ativa.</p>}
           <div className="relative mt-1">
             <span className="absolute left-3 top-2 text-gray-500">R$</span>
             <input
@@ -203,8 +214,9 @@ export function CampaignForm() {
               min="0.01"
               step="0.01"
               value={budgetReais}
+              disabled={isLive}
               onChange={(e) => setBudgetReais(e.target.value)}
-              className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
               placeholder="100.00"
             />
           </div>
@@ -212,33 +224,43 @@ export function CampaignForm() {
 
         <div className="space-y-3 rounded-md border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-900">Redes Sociais e Valores</h3>
-          <p className="text-xs text-gray-500">Selecione pelo menos uma rede e defina quanto vai pagar a cada 1.000 views em cada uma.</p>
-          {(['tiktok', 'youtube', 'instagram'] as PlatformKey[]).map((k) => (
-            <div key={k} className="flex items-center gap-3">
-              <label className="flex min-w-[140px] items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={platformEnabled[k]}
-                  onChange={(e) => setPlatformEnabled((prev) => ({ ...prev, [k]: e.target.checked }))}
-                />
-                <span className="flex items-center gap-1.5"><PlatformIcon platform={k} size={16} /> {platformLabel(k)}</span>
-              </label>
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-2 text-gray-500">R$</span>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  disabled={!platformEnabled[k]}
-                  value={platformCpm[k]}
-                  onChange={(e) => setPlatformCpm((prev) => ({ ...prev, [k]: e.target.value }))}
-                  className="block w-full rounded-md border border-gray-300 py-1.5 pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="5.00"
-                />
+          <p className="text-xs text-gray-500">
+            {isLive
+              ? 'Voce pode adicionar novas redes sociais. Redes ja ativas nao podem ser removidas ou ter o valor alterado.'
+              : 'Selecione pelo menos uma rede e defina quanto vai pagar a cada 1.000 views em cada uma.'}
+          </p>
+          {(['tiktok', 'youtube', 'instagram'] as PlatformKey[]).map((k) => {
+            const isOriginal = originalPlatforms.has(k);
+            const checkboxLocked = isLive && isOriginal; // can't uncheck existing platforms on live
+            const cpmLocked = isLive && isOriginal; // can't change CPM of existing platforms on live
+            return (
+              <div key={k} className="flex items-center gap-3">
+                <label className="flex min-w-[140px] items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={platformEnabled[k]}
+                    disabled={checkboxLocked}
+                    onChange={(e) => setPlatformEnabled((prev) => ({ ...prev, [k]: e.target.checked }))}
+                  />
+                  <span className="flex items-center gap-1.5"><PlatformIcon platform={k} size={16} /> {platformLabel(k)}</span>
+                </label>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-2 text-gray-500">R$</span>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    disabled={!platformEnabled[k] || cpmLocked}
+                    value={platformCpm[k]}
+                    onChange={(e) => setPlatformCpm((prev) => ({ ...prev, [k]: e.target.value }))}
+                    className="block w-full rounded-md border border-gray-300 py-1.5 pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
+                    placeholder="5.00"
+                  />
+                </div>
+                <span className="text-xs text-gray-400">/ 1k views</span>
               </div>
-              <span className="text-xs text-gray-400">/ 1k views</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="space-y-4 rounded-md border border-gray-200 p-4">
@@ -246,21 +268,23 @@ export function CampaignForm() {
 
           <div>
             <p className="text-sm font-medium text-gray-700">Inicio</p>
+            {isLive && <p className="mt-0.5 text-xs text-amber-600">Nao pode ser alterado com a campanha ativa.</p>}
             <div className="mt-2 space-y-2">
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input type="radio" name="startMode" checked={startMode === 'immediate'} onChange={() => setStartMode('immediate')} />
+              <label className={`flex items-center gap-2 text-sm ${isLive ? 'text-gray-400' : 'text-gray-600'}`}>
+                <input type="radio" name="startMode" checked={startMode === 'immediate'} onChange={() => setStartMode('immediate')} disabled={isLive} />
                 Iniciar imediatamente ao ativar
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input type="radio" name="startMode" checked={startMode === 'scheduled'} onChange={() => setStartMode('scheduled')} />
+              <label className={`flex items-center gap-2 text-sm ${isLive ? 'text-gray-400' : 'text-gray-600'}`}>
+                <input type="radio" name="startMode" checked={startMode === 'scheduled'} onChange={() => setStartMode('scheduled')} disabled={isLive} />
                 Agendar inicio
               </label>
               {startMode === 'scheduled' && (
                 <input
                   type="datetime-local"
                   value={startAtLocal}
+                  disabled={isLive}
                   onChange={(e) => setStartAtLocal(e.target.value)}
-                  className="ml-6 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="ml-6 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
                 />
               )}
             </div>
