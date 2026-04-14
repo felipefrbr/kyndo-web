@@ -25,15 +25,15 @@ export function MyCampaigns() {
   const totalPages = Math.max(1, Math.ceil(total / 10));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Minhas Campanhas</h1>
-          <p className="text-gray-600">{total} campanha{total !== 1 && 's'}</p>
+          <p className="mt-1 text-gray-500">{total} campanha{total !== 1 && 's'}</p>
         </div>
         <Link
           to="/creator/campaigns/new"
-          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-shadow hover:shadow-md hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
           Criar Campanha
@@ -45,12 +45,12 @@ export function MyCampaigns() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : campaigns.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
           <h2 className="text-lg font-medium text-gray-900">Voce ainda nao tem campanhas</h2>
           <p className="mt-2 text-gray-500">Crie sua primeira campanha para divulgar seu conteudo.</p>
           <Link
             to="/creator/campaigns/new"
-            className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+            className="mt-4 inline-block rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-shadow hover:shadow-md hover:bg-primary/90"
           >
             Criar Campanha
           </Link>
@@ -62,12 +62,12 @@ export function MyCampaigns() {
               <Link
                 key={c.id}
                 to={`/creator/campaigns/${c.id}`}
-                className="flex items-center gap-4 rounded-lg border bg-white p-5 transition-shadow hover:shadow-md"
+                className="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
               >
                 {c.cover_image_url ? (
-                  <img src={c.cover_image_url} alt={c.title} className="h-20 w-20 flex-shrink-0 rounded-md object-cover" />
+                  <img src={c.cover_image_url} alt={c.title} className="h-20 w-20 flex-shrink-0 rounded-xl object-cover" />
                 ) : (
-                  <div className="h-20 w-20 flex-shrink-0 rounded-md bg-gradient-to-br from-gray-100 to-gray-200" />
+                  <div className="h-20 w-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200" />
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
@@ -90,17 +90,17 @@ export function MyCampaigns() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+                className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md disabled:opacity-50"
               >
                 Anterior
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-500">
                 Pagina {page} de {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+                className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md disabled:opacity-50"
               >
                 Proxima
               </button>
