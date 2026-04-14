@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, Clock, Wallet, CheckCircle2 } from 'lucide-react';
 import { getCampaignContent, createPost, subscribeToCampaign, unsubscribeFromCampaign } from '@/api/marketplace.api';
 import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import { PlatformIcon, platformLabel } from '@/components/shared/PlatformIcon';
@@ -37,208 +37,216 @@ export function CampaignContent() {
   const handleSubscribe = async () => {
     if (!id) return;
     setSubscribing(true);
-    try {
-      await subscribeToCampaign(id);
-      setIsSubscribed(true);
-    } catch {
-      alert('Erro ao se inscrever.');
-    } finally {
-      setSubscribing(false);
-    }
+    try { await subscribeToCampaign(id); setIsSubscribed(true); } catch { alert('Erro ao se inscrever.'); } finally { setSubscribing(false); }
   };
-
   const handleUnsubscribe = async () => {
     if (!id) return;
     setSubscribing(true);
-    try {
-      await unsubscribeFromCampaign(id);
-      setIsSubscribed(false);
-    } catch {
-      alert('Erro ao cancelar inscricao.');
-    } finally {
-      setSubscribing(false);
-    }
+    try { await unsubscribeFromCampaign(id); setIsSubscribed(false); } catch { alert('Erro ao cancelar inscricao.'); } finally { setSubscribing(false); }
   };
-
   const handleSubmitPost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
     setSubmitting(true);
-    try {
-      await createPost(id, postUrl, platform);
-      setSubmitted(true);
-      setPostUrl('');
-      setShowPostForm(false);
-    } catch {
-      alert('Erro ao submeter post.');
-    } finally {
-      setSubmitting(false);
-    }
+    try { await createPost(id, postUrl, platform); setSubmitted(true); setPostUrl(''); setShowPostForm(false); } catch { alert('Erro ao submeter post.'); } finally { setSubmitting(false); }
   };
 
   if (loading || !campaign) {
     return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   }
 
+  const spentPercent = campaign.budget_cents > 0 ? Math.min(100, Math.round((campaign.spent_cents / campaign.budget_cents) * 100)) : 0;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Link to="/promoter/browse" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-        <ArrowLeft className="h-4 w-4" /> Voltar ao marketplace
+    <div className="mx-auto max-w-4xl">
+      {/* Back link */}
+      <Link to="/promoter/browse" className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+        <ArrowLeft className="h-4 w-4" /> Marketplace
       </Link>
 
-      {campaign.cover_image_url && (
-        <img src={campaign.cover_image_url} alt={campaign.title} className="w-full rounded-lg object-cover max-h-64" />
-      )}
+      {/* Hero section */}
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+        {campaign.cover_image_url ? (
+          <div className="relative h-56 sm:h-72">
+            <img src={campaign.cover_image_url} alt={campaign.title} className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h1 className="text-2xl font-bold sm:text-3xl">{campaign.title}</h1>
+              <p className="mt-1 text-sm text-white/80">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6">
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{campaign.title}</h1>
+            <p className="mt-1 text-sm text-gray-500">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> por 1k views</p>
+          </div>
+        )}
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{campaign.title}</h1>
-          <p className="mt-1 text-sm text-gray-500">A partir de <strong>{formatCurrency(campaign.cpm_cents)}</strong> a cada 1.000 views</p>
-        </div>
-        <div>
+        {/* Action bar */}
+        <div className="flex items-center justify-between border-t px-6 py-4">
+          <div className="flex items-center gap-3">
+            {(campaign.platforms ?? []).map((p) => (
+              <div key={p.platform} className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+                <PlatformIcon platform={p.platform} size={14} />
+                <span className="text-xs font-medium text-gray-700">{formatCurrency(p.cpm_cents)}</span>
+              </div>
+            ))}
+          </div>
           {isSubscribed ? (
-            <button
-              onClick={handleUnsubscribe}
-              disabled={subscribing}
-              className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
-            >
-              {subscribing ? '...' : 'Cancelar Inscricao'}
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 text-sm font-medium text-green-600"><CheckCircle2 className="h-4 w-4" /> Inscrito</span>
+              <button onClick={handleUnsubscribe} disabled={subscribing} className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                Sair
+              </button>
+            </div>
           ) : (
-            <button
-              onClick={handleSubscribe}
-              disabled={subscribing}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-            >
+            <button onClick={handleSubscribe} disabled={subscribing} className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
               {subscribing ? '...' : 'Inscrever-se'}
             </button>
           )}
         </div>
       </div>
 
-      {/* Key info cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-gray-500">Orcamento Total</p>
-          <p className="mt-1 text-lg font-bold text-gray-900">{formatCurrency(campaign.budget_cents)}</p>
-          {campaign.budget_cents > 0 && campaign.spent_cents > 0 && (
-            <p className="mt-1 text-xs text-gray-400">{Math.round((campaign.spent_cents / campaign.budget_cents) * 100)}% utilizado</p>
-          )}
-        </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-gray-500">Inicio</p>
-          <p className="mt-1 text-sm font-semibold text-gray-900">
-            {campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato'}
-          </p>
-        </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-gray-500">Termino</p>
-          <p className="mt-1 text-sm font-semibold text-gray-900">
-            {campaign.end_at ? formatDateTime(campaign.end_at) : 'Ate acabar o saldo'}
-          </p>
-        </div>
-      </div>
-
-      {/* Platforms and CPMs */}
-      {campaign.platforms && campaign.platforms.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {campaign.platforms.map((p) => (
-            <div key={p.platform} className="flex items-center gap-2 rounded-lg border bg-white px-4 py-2">
-              <PlatformIcon platform={p.platform} size={18} />
-              <span className="text-sm font-medium">{platformLabel(p.platform)}</span>
-              <span className="text-sm font-bold text-primary">{formatCurrency(p.cpm_cents)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="rounded-lg border bg-white p-5">
-        <h2 className="mb-3 text-sm font-medium text-gray-500">Descricao</h2>
-        <p className="whitespace-pre-wrap text-gray-900">{campaign.description}</p>
-      </div>
-
-      <div className="rounded-lg border bg-white p-5">
-        <h2 className="mb-3 text-sm font-medium text-gray-500">Conteudo Original</h2>
-        <a href={contentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline">
-          <ExternalLink className="h-4 w-4" /> {contentUrl}
-        </a>
-      </div>
-
-      {instructions && (
-        <div className="rounded-lg border bg-white p-5">
-          <h2 className="mb-3 text-sm font-medium text-gray-500">Instrucoes</h2>
-          <p className="whitespace-pre-wrap text-gray-900">{instructions}</p>
-        </div>
-      )}
-
-      {submitted && (
-        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700">
-          Post submetido com sucesso! Aguarde a aprovacao do admin. <Link to="/promoter/posts" className="font-medium underline">Ver meus posts</Link>
-        </div>
-      )}
-
-      {/* Post submission — only for subscribed users */}
-      {isSubscribed && (
-        <div className="rounded-lg border bg-white p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-500">Submeter Post</h2>
-            {!showPostForm && (
-              <button onClick={() => setShowPostForm(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                Submeter Link
-              </button>
-            )}
+      {/* Stats strip */}
+      <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+            <Wallet className="h-5 w-5 text-green-600" />
           </div>
+          <div>
+            <p className="text-xs text-gray-500">Orcamento</p>
+            <p className="text-sm font-bold text-gray-900">{formatCurrency(campaign.budget_cents)}</p>
+            <div className="mt-1 h-1 w-20 overflow-hidden rounded-full bg-gray-200">
+              <div className="h-full rounded-full bg-green-500" style={{ width: `${spentPercent}%` }} />
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+            <Calendar className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Inicio</p>
+            <p className="text-sm font-semibold text-gray-900">{campaign.start_at ? formatDateTime(campaign.start_at) : 'Imediato'}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+            <Clock className="h-5 w-5 text-orange-600" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Termino</p>
+            <p className="text-sm font-semibold text-gray-900">{campaign.end_at ? formatDateTime(campaign.end_at) : 'Ate o saldo'}</p>
+          </div>
+        </div>
+      </div>
 
-          {showPostForm && (
-            <form onSubmit={handleSubmitPost} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Plataforma</label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(campaign.platforms ?? []).map((p) => (
-                    <button
-                      key={p.platform}
-                      type="button"
-                      onClick={() => setPlatform(p.platform)}
-                      className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
-                        platform === p.platform ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
-                      }`}
-                    >
-                      <PlatformIcon platform={p.platform} size={18} />
-                      <span>{platformLabel(p.platform)}</span>
-                      <span className="text-xs text-gray-500">{formatCurrency(p.cpm_cents)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+      {/* Content area: two columns on desktop */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        {/* Left: main content */}
+        <div className="space-y-5 lg:col-span-2">
+          {/* Description */}
+          {campaign.description && (
+            <div className="rounded-xl bg-white p-5 shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">Sobre a campanha</h2>
+              <p className="mt-3 whitespace-pre-wrap leading-relaxed text-gray-700">{campaign.description}</p>
+            </div>
+          )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">URL do Post</label>
-                <input
-                  type="url"
-                  required
-                  value={postUrl}
-                  onChange={(e) => setPostUrl(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="https://tiktok.com/@seu-usuario/video/..."
-                />
-              </div>
+          {/* Instructions */}
+          {instructions && (
+            <div className="rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-primary/70">Instrucoes para divulgadores</h2>
+              <p className="mt-3 whitespace-pre-wrap leading-relaxed text-gray-700">{instructions}</p>
+            </div>
+          )}
 
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setShowPostForm(false)} className="rounded-md border px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Cancelar</button>
-                <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
-                  {submitting ? 'Enviando...' : 'Enviar Post'}
-                </button>
+          {/* Content URL */}
+          {contentUrl && (
+            <a href={contentUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <ExternalLink className="h-5 w-5 text-primary" />
               </div>
-            </form>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900">Conteudo Original</p>
+                <p className="truncate text-xs text-primary">{contentUrl}</p>
+              </div>
+            </a>
           )}
         </div>
-      )}
 
-      {!isSubscribed && (
-        <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-700">
-          Inscreva-se nesta campanha para submeter posts e ganhar por visualizacoes.
+        {/* Right: sidebar */}
+        <div className="space-y-5">
+          {/* Submit post card */}
+          {isSubscribed ? (
+            <div className="rounded-xl bg-white p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-gray-900">Submeter Post</h2>
+              <p className="mt-1 text-xs text-gray-500">Poste nas redes e informe o link aqui.</p>
+
+              {submitted && (
+                <div className="mt-3 rounded-lg bg-green-50 p-3 text-xs text-green-700">
+                  Enviado! <Link to="/promoter/posts" className="font-medium underline">Ver meus posts</Link>
+                </div>
+              )}
+
+              {!showPostForm ? (
+                <button onClick={() => setShowPostForm(true)} className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">
+                  Submeter Link
+                </button>
+              ) : (
+                <form onSubmit={handleSubmitPost} className="mt-4 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(campaign.platforms ?? []).map((p) => (
+                      <button key={p.platform} type="button" onClick={() => setPlatform(p.platform)}
+                        className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-medium transition-colors ${
+                          platform === p.platform ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-500'
+                        }`}>
+                        <PlatformIcon platform={p.platform} size={14} />
+                        {platformLabel(p.platform)}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="url" required value={postUrl} onChange={(e) => setPostUrl(e.target.value)}
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="https://..." />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setShowPostForm(false)} className="flex-1 rounded-lg border px-3 py-2 text-xs text-gray-600 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" disabled={submitting} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50">
+                      {submitting ? '...' : 'Enviar'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-5 text-center">
+              <p className="text-sm font-medium text-gray-700">Quer divulgar essa campanha?</p>
+              <p className="mt-1 text-xs text-gray-500">Inscreva-se para submeter posts e ganhar por views.</p>
+              <button onClick={handleSubscribe} disabled={subscribing}
+                className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
+                {subscribing ? '...' : 'Inscrever-se nesta campanha'}
+              </button>
+            </div>
+          )}
+
+          {/* Earnings info */}
+          <div className="rounded-xl bg-white p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-900">Quanto voce ganha</h2>
+            <div className="mt-3 space-y-2">
+              {(campaign.platforms ?? []).map((p) => (
+                <div key={p.platform} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PlatformIcon platform={p.platform} size={16} />
+                    <span className="text-sm text-gray-600">{platformLabel(p.platform)}</span>
+                  </div>
+                  <span className="text-sm font-bold text-primary">{formatCurrency(p.cpm_cents)}<span className="text-xs font-normal text-gray-400">/1k</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
